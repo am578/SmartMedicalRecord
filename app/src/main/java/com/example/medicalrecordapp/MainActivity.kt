@@ -3,45 +3,63 @@ package com.example.medicalrecordapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.medicalrecordapp.ui.screens.LoginScreen
+import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
+import com.example.medicalrecordapp.viewmodel.AuthViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             MedicalRecordAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+
+                val authViewModel = remember { AuthViewModel() }
+
+                var currentScreen by remember { mutableStateOf("login") }
+                var userRole by remember { mutableStateOf("") }
+
+                when (currentScreen) {
+
+                    "login" -> LoginScreen(
+                        authViewModel = authViewModel,
+                        onLoginSuccess = {
+                            val user = authViewModel.loggedInUser.value
+                            userRole = user?.role?.name ?: ""
+                            currentScreen = "dashboard"
+                        },
+                        onGoToRegister = {
+                            currentScreen = "register"
+                        }
                     )
+
+                    "register" -> RegisterScreen(
+                        authViewModel = authViewModel,
+                        onRegisterSuccess = {
+                            currentScreen = "login"
+                        },
+                        onBackToLogin = {
+                            currentScreen = "login"
+                        }
+                    )
+
+                    "dashboard" -> {
+                        when (userRole) {
+                            "ADMIN" -> Text("Admin Dashboard")
+                            "DOCTOR" -> Text("Doctor Dashboard")
+                            "RECEPTIONIST" -> Text("Reception Dashboard")
+                            "PATIENT" -> Text("Patient Dashboard")
+                            else -> Text("Unknown Role")
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MedicalRecordAppTheme {
-        Greeting("Android")
     }
 }
