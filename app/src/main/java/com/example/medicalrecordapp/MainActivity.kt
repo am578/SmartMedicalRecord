@@ -13,6 +13,7 @@ import com.example.medicalrecordapp.ui.screens.LoginScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
+import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +65,17 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                             "RECEPTIONIST" -> Text("Reception Dashboard")
-                            "PATIENT" -> Text("Patient Dashboard")
+                            "PATIENT" -> PatientDashboardScreen(
+                                onMyRecordClick = {
+                                },
+                                onMyAppointmentsClick = {
+                                },
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
                             else -> Text("Unknown Role")
                         }
                     }
