@@ -8,13 +8,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
 import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
 import com.example.medicalrecordapp.ui.screens.LoginScreen
+import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
+import com.example.medicalrecordapp.ui.screens.PatientsListScreen
+import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
-import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
+import com.example.medicalrecordapp.viewmodel.PatientViewModel
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +26,7 @@ class MainActivity : ComponentActivity() {
             MedicalRecordAppTheme {
 
                 val authViewModel = remember { AuthViewModel() }
+                val patientViewModel = remember { PatientViewModel() }
 
                 var currentScreen by remember { mutableStateOf("login") }
                 var userRole by remember { mutableStateOf("") }
@@ -50,11 +55,27 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    "patients_list" -> PatientsListScreen(
+                        patients = patientViewModel.getPatients()
+                    )
+
                     "dashboard" -> {
                         when (userRole) {
-                            "ADMIN" -> Text("Admin Dashboard")
+                            "ADMIN" -> AdminDashboardScreen(
+                                onManageUsersClick = {
+                                },
+                                onStatisticsClick = {
+                                },
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
+
                             "DOCTOR" -> DoctorDashboardScreen(
                                 onPatientsClick = {
+                                    currentScreen = "patients_list"
                                 },
                                 onAppointmentsClick = {
                                 },
@@ -64,6 +85,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                 }
                             )
+
                             "RECEPTIONIST" -> ReceptionDashboardScreen(
                                 onRegisterPatientClick = {
                                 },
@@ -75,6 +97,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                 }
                             )
+
                             "PATIENT" -> PatientDashboardScreen(
                                 onMyRecordClick = {
                                 },
@@ -86,6 +109,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                 }
                             )
+
                             else -> Text("Unknown Role")
                         }
                     }
