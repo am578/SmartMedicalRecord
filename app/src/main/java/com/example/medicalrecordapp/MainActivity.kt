@@ -14,7 +14,7 @@ import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
 import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
-
+import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +64,17 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                 }
                             )
-                            "RECEPTIONIST" -> Text("Reception Dashboard")
+                            "RECEPTIONIST" -> ReceptionDashboardScreen(
+                                onRegisterPatientClick = {
+                                },
+                                onAppointmentsClick = {
+                                },
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
                             "PATIENT" -> PatientDashboardScreen(
                                 onMyRecordClick = {
                                 },
