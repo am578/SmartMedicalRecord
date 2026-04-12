@@ -8,14 +8,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.medicalrecordapp.domain.model.Patient
 import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
+import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
 import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
 import com.example.medicalrecordapp.ui.screens.LoginScreen
 import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
+import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
 import com.example.medicalrecordapp.ui.screens.PatientsListScreen
 import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
+import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
 import com.example.medicalrecordapp.viewmodel.PatientViewModel
 
@@ -27,9 +31,11 @@ class MainActivity : ComponentActivity() {
 
                 val authViewModel = remember { AuthViewModel() }
                 val patientViewModel = remember { PatientViewModel() }
+                val appointmentViewModel = remember { AppointmentViewModel() }
 
                 var currentScreen by remember { mutableStateOf("login") }
                 var userRole by remember { mutableStateOf("") }
+                var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
                 when (currentScreen) {
 
@@ -56,11 +62,37 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "patients_list" -> PatientsListScreen(
-                        patients = patientViewModel.getPatients()
+                        patients = patientViewModel.getPatients(),
+                        onPatientClick = { patient ->
+                            selectedPatient = patient
+                            currentScreen = "patient_details"
+                        },
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        }
+                    )
+
+                    "patient_details" -> {
+                        selectedPatient?.let { patient ->
+                            PatientDetailsScreen(
+                                patient = patient,
+                                onBackClick = {
+                                    currentScreen = "patients_list"
+                                }
+                            )
+                        }
+                    }
+
+                    "doctor_appointments" -> DoctorAppointmentsScreen(
+                        appointments = appointmentViewModel.getAppointments(),
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        }
                     )
 
                     "dashboard" -> {
                         when (userRole) {
+
                             "ADMIN" -> AdminDashboardScreen(
                                 onManageUsersClick = {
                                 },
@@ -78,6 +110,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "patients_list"
                                 },
                                 onAppointmentsClick = {
+                                    currentScreen = "doctor_appointments"
                                 },
                                 onLogoutClick = {
                                     authViewModel.loggedInUser.value = null
