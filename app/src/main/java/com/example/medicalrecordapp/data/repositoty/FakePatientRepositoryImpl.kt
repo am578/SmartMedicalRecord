@@ -7,9 +7,9 @@ class FakePatientRepositoryImpl : PatientRepository {
 
     override fun getPatients(): List<Patient> {
         return listOf(
-            Patient(1, "Ahmed Benali", 25, "Male", "0550123456"),
-            Patient(2, "Sara Amrani", 30, "Female", "0661234567"),
-            Patient(3, "Yacine Boudiaf", 40, "Male", "0777654321")
+            Patient(1, "Ahmed", "Benali", 25, "Male", "0550123456"),
+            Patient(2, "Sara", "Amrani", 30, "Female", "0661234567"),
+            Patient(3, "Yacine", "Boudiaf", 40, "Male", "0777654321")
         )
     }
 }

@@ -33,7 +33,7 @@ fun PatientsListScreen(
     var searchText by remember { mutableStateOf("") }
 
     val filteredPatients = patients.filter {
-        it.fullName.contains(searchText, ignoreCase = true)
+        "${it.firstName} ${it.lastName}".contains(searchText, ignoreCase = true)
     }
 
     Column(
@@ -83,7 +83,7 @@ fun PatientsListScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = patient.fullName,
+                            text = "${patient.firstName} ${patient.lastName}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )

@@ -41,7 +41,7 @@ fun PatientDetailsScreen(
             Column(modifier = Modifier.padding(20.dp)) {
 
                 Text(
-                    text = patient.fullName,
+                    text = "${patient.firstName} ${patient.lastName}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )

@@ -4,38 +4,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateListOf
 import com.example.medicalrecordapp.domain.model.Patient
-import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
-import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
-import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
-import com.example.medicalrecordapp.ui.screens.LoginScreen
-import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
-import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
-import com.example.medicalrecordapp.ui.screens.PatientsListScreen
-import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
-import com.example.medicalrecordapp.ui.screens.RegisterScreen
+import com.example.medicalrecordapp.ui.screens.*
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-import com.example.medicalrecordapp.viewmodel.PatientViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MedicalRecordAppTheme {
 
                 val authViewModel = remember { AuthViewModel() }
-                val patientViewModel = remember { PatientViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
                 var currentScreen by remember { mutableStateOf("login") }
                 var userRole by remember { mutableStateOf("") }
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
+
+                val patients = remember {
+                    mutableStateListOf(
+                        Patient(1, "Ahmed", "Benali", 25, "Male", "0550123456"),
+                        Patient(2, "Sara", "Amrani", 30, "Female", "0661234567"),
+                        Patient(3, "Yacine", "Boudiaf", 40, "Male", "0777654321")
+                    )
+                }
 
                 when (currentScreen) {
 
@@ -61,8 +59,93 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    "dashboard" -> {
+                        when (userRole) {
+
+                            "ADMIN" -> AdminDashboardScreen(
+                                onManageUsersClick = {},
+                                onStatisticsClick = {},
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
+
+                            "DOCTOR" -> DoctorDashboardScreen(
+                                onPatientsClick = {
+                                    currentScreen = "patients_list"
+                                },
+                                onAppointmentsClick = {
+                                    currentScreen = "doctor_appointments"
+                                },
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
+
+                            "RECEPTIONIST" -> ReceptionDashboardScreen(
+                                onRegisterPatientClick = {
+                                    currentScreen = "register_patient"
+                                },
+                                onPatientsClick = {
+                                    currentScreen = "patients_list"
+                                },
+                                onAppointmentsClick = {
+                                    currentScreen = "doctor_appointments"
+                                },
+                                onRequestsClick = {
+                                    currentScreen = "appointment_requests"
+                                },
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
+
+                            "PATIENT" -> PatientDashboardScreen(
+                                onRequestAppointmentClick = {
+                                    currentScreen = "request_appointment"
+                                },
+                                onMyAppointmentsClick = {
+                                    currentScreen = "patient_appointments"
+                                },
+                                onMyRecordClick = {},
+                                onLogoutClick = {
+                                    authViewModel.loggedInUser.value = null
+                                    userRole = ""
+                                    currentScreen = "login"
+                                }
+                            )
+
+                            else -> Text("Unknown Role")
+                        }
+                    }
+
+                    "register_patient" -> RegisterPatientScreen(
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        },
+                        onSaveClick = { firstName, lastName, age, gender, phone ->
+                            patients.add(
+                                Patient(
+                                    id = patients.size + 1,
+                                    firstName = firstName,
+                                    lastName = lastName,
+                                    age = age.toIntOrNull() ?: 0,
+                                    gender = gender,
+                                    phone = phone
+                                )
+                            )
+                            currentScreen = "patients_list"
+                        }
+                    )
+
                     "patients_list" -> PatientsListScreen(
-                        patients = patientViewModel.getPatients(),
+                        patients = patients,
                         onPatientClick = { patient ->
                             selectedPatient = patient
                             currentScreen = "patient_details"
@@ -90,62 +173,27 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    "dashboard" -> {
-                        when (userRole) {
-
-                            "ADMIN" -> AdminDashboardScreen(
-                                onManageUsersClick = {
-                                },
-                                onStatisticsClick = {
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "DOCTOR" -> DoctorDashboardScreen(
-                                onPatientsClick = {
-                                    currentScreen = "patients_list"
-                                },
-                                onAppointmentsClick = {
-                                    currentScreen = "doctor_appointments"
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "RECEPTIONIST" -> ReceptionDashboardScreen(
-                                onRegisterPatientClick = {
-                                },
-                                onAppointmentsClick = {
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "PATIENT" -> PatientDashboardScreen(
-                                onMyRecordClick = {
-                                },
-                                onMyAppointmentsClick = {
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            else -> Text("Unknown Role")
+                    "request_appointment" -> RequestAppointmentScreen(
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        },
+                        onSubmitClick = {
+                            currentScreen = "patient_appointments"
                         }
-                    }
+                    )
+
+                    "patient_appointments" -> PatientAppointmentsScreen(
+                        appointments = appointmentViewModel.getAppointments(),
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        }
+                    )
+
+                    "appointment_requests" -> AppointmentRequestsScreen(
+                        onBackClick = {
+                            currentScreen = "dashboard"
+                        }
+                    )
                 }
             }
         }
