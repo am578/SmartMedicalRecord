@@ -35,6 +35,10 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val appointments = remember {
+                    mutableStateListOf<com.example.medicalrecordapp.domain.model.Appointment>()
+                }
+
                 when (currentScreen) {
 
                     "login" -> LoginScreen(
@@ -190,6 +194,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "appointment_requests" -> AppointmentRequestsScreen(
+                        appointments = appointments,
                         onBackClick = {
                             currentScreen = "dashboard"
                         }
