@@ -76,4 +76,4 @@ It connects patients, doctors, and receptionists in one system to handle appoint
 This project was developed as part of an academic project (Mémoire).  
 The system is designed to be scalable and ready for backend integration.
 
----
+--
