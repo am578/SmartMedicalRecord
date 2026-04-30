@@ -7,7 +7,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateListOf
 import com.example.medicalrecordapp.domain.model.Patient
-import com.example.medicalrecordapp.ui.screens.*
+import com.example.medicalrecordapp.ui.screens.AppointmentRequestsScreen
+import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
+import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
+import com.example.medicalrecordapp.ui.screens.LoginScreen
+import com.example.medicalrecordapp.ui.screens.PatientAppointmentsScreen
+import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
+import com.example.medicalrecordapp.ui.screens.PatientsListScreen
+import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
+import com.example.medicalrecordapp.ui.screens.RegisterScreen
+import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
@@ -23,7 +32,6 @@ class MainActivity : ComponentActivity() {
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
-                // إذا المستخدم مسجل دخول مسبقاً، روّحه للـ dashboard مباشرة
                 var currentScreen by remember {
                     mutableStateOf(
                         if (authViewModel.isUserLoggedIn()) "dashboard" else "login"
