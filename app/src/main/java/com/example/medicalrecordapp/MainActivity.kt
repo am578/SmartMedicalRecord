@@ -3,8 +3,13 @@ package com.example.medicalrecordapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.example.medicalrecordapp.domain.model.Patient
 import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
 import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
@@ -33,11 +38,8 @@ class MainActivity : ComponentActivity() {
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
-                var currentScreen by remember {
-                    mutableStateOf(
-                        if (authViewModel.isUserLoggedIn()) "dashboard" else "login"
-                    )
-                }
+                // "loading" عشان ننتظر جلب الـ role من Firestore
+                var currentScreen by remember { mutableStateOf("loading") }
 
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
@@ -53,11 +55,42 @@ class MainActivity : ComponentActivity() {
                     mutableStateListOf<com.example.medicalrecordapp.domain.model.Appointment>()
                 }
 
+                // عند بدء التطبيق: إذا مسجل دخول اجلب الـ role وروّحه للصفحة الصحيحة
+                LaunchedEffect(Unit) {
+                    if (authViewModel.isUserLoggedIn()) {
+                        authViewModel.getUserRole { role ->
+                            currentScreen = when (role) {
+                                "doctor" -> "doctor_dashboard"
+                                "admin" -> "admin_dashboard"
+                                else -> "patient_dashboard"
+                            }
+                        }
+                    } else {
+                        currentScreen = "login"
+                    }
+                }
+
                 when (currentScreen) {
+
+                    "loading" -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
 
                     "login" -> LoginScreen(
                         authViewModel = authViewModel,
-                        onLoginSuccess = { currentScreen = "dashboard" },
+                        onLoginSuccess = {
+                            // بعد الدخول اجلب الـ role ووجّه للصفحة الصحيحة
+                            authViewModel.getUserRole { role ->
+                                currentScreen = when (role) {
+                                    "doctor" -> "doctor_dashboard"
+                                    "admin" -> "admin_dashboard"
+                                    else -> "patient_dashboard"
+                                }
+                            }
+                        },
                         onGoToRegister = { currentScreen = "register" }
                     )
 
@@ -67,7 +100,8 @@ class MainActivity : ComponentActivity() {
                         onBackToLogin = { currentScreen = "login" }
                     )
 
-                    "dashboard" -> DoctorDashboardScreen(
+                    // ────── Doctor ──────
+                    "doctor_dashboard" -> DoctorDashboardScreen(
                         onPatientsClick = { currentScreen = "patients_list" },
                         onAppointmentsClick = { currentScreen = "doctor_appointments" },
                         onLogoutClick = {
@@ -76,8 +110,27 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    // ────── Patient ──────
+                    "patient_dashboard" -> PatientDashboardScreen(
+                        onAppointmentsClick = { currentScreen = "patient_appointments" },
+                        onRequestAppointmentClick = { currentScreen = "request_appointment" },
+                        onLogoutClick = {
+                            authViewModel.logoutUser()
+                            currentScreen = "login"
+                        }
+                    )
+
+                    // ────── Admin ──────
+                    "admin_dashboard" -> AdminDashboardScreen(
+                        onLogoutClick = {
+                            authViewModel.logoutUser()
+                            currentScreen = "login"
+                        }
+                    )
+
+                    // ────── Shared screens ──────
                     "register_patient" -> RegisterPatientScreen(
-                        onBackClick = { currentScreen = "dashboard" },
+                        onBackClick = { currentScreen = "doctor_dashboard" },
                         onSaveClick = { firstName, lastName, age, gender, phone ->
                             patients.add(
                                 Patient(
@@ -99,7 +152,7 @@ class MainActivity : ComponentActivity() {
                             selectedPatient = patient
                             currentScreen = "patient_details"
                         },
-                        onBackClick = { currentScreen = "dashboard" }
+                        onBackClick = { currentScreen = "doctor_dashboard" }
                     )
 
                     "patient_details" -> {
@@ -113,17 +166,17 @@ class MainActivity : ComponentActivity() {
 
                     "doctor_appointments" -> DoctorAppointmentsScreen(
                         appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = { currentScreen = "dashboard" }
+                        onBackClick = { currentScreen = "doctor_dashboard" }
                     )
 
                     "request_appointment" -> RequestAppointmentScreen(
-                        onBackClick = { currentScreen = "dashboard" },
+                        onBackClick = { currentScreen = "patient_dashboard" },
                         onSubmitClick = { currentScreen = "patient_appointments" }
                     )
 
                     "patient_appointments" -> PatientAppointmentsScreen(
                         appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = { currentScreen = "dashboard" }
+                        onBackClick = { currentScreen = "patient_dashboard" }
                     )
                 }
             }
