@@ -3,17 +3,18 @@ package com.example.medicalrecordapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateListOf
 import com.example.medicalrecordapp.domain.model.Patient
-import com.example.medicalrecordapp.ui.screens.AppointmentRequestsScreen
+import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
 import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
 import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
 import com.example.medicalrecordapp.ui.screens.LoginScreen
 import com.example.medicalrecordapp.ui.screens.PatientAppointmentsScreen
+import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
 import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
 import com.example.medicalrecordapp.ui.screens.PatientsListScreen
+import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
@@ -56,31 +57,19 @@ class MainActivity : ComponentActivity() {
 
                     "login" -> LoginScreen(
                         authViewModel = authViewModel,
-                        onLoginSuccess = {
-                            currentScreen = "dashboard"
-                        },
-                        onGoToRegister = {
-                            currentScreen = "register"
-                        }
+                        onLoginSuccess = { currentScreen = "dashboard" },
+                        onGoToRegister = { currentScreen = "register" }
                     )
 
                     "register" -> RegisterScreen(
                         authViewModel = authViewModel,
-                        onRegisterSuccess = {
-                            currentScreen = "login"
-                        },
-                        onBackToLogin = {
-                            currentScreen = "login"
-                        }
+                        onRegisterSuccess = { currentScreen = "login" },
+                        onBackToLogin = { currentScreen = "login" }
                     )
 
                     "dashboard" -> DoctorDashboardScreen(
-                        onPatientsClick = {
-                            currentScreen = "patients_list"
-                        },
-                        onAppointmentsClick = {
-                            currentScreen = "doctor_appointments"
-                        },
+                        onPatientsClick = { currentScreen = "patients_list" },
+                        onAppointmentsClick = { currentScreen = "doctor_appointments" },
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
@@ -88,9 +77,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "register_patient" -> RegisterPatientScreen(
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        },
+                        onBackClick = { currentScreen = "dashboard" },
                         onSaveClick = { firstName, lastName, age, gender, phone ->
                             patients.add(
                                 Patient(
@@ -112,50 +99,31 @@ class MainActivity : ComponentActivity() {
                             selectedPatient = patient
                             currentScreen = "patient_details"
                         },
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        }
+                        onBackClick = { currentScreen = "dashboard" }
                     )
 
                     "patient_details" -> {
                         selectedPatient?.let { patient ->
                             PatientDetailsScreen(
                                 patient = patient,
-                                onBackClick = {
-                                    currentScreen = "patients_list"
-                                }
+                                onBackClick = { currentScreen = "patients_list" }
                             )
                         }
                     }
 
                     "doctor_appointments" -> DoctorAppointmentsScreen(
                         appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        }
+                        onBackClick = { currentScreen = "dashboard" }
                     )
 
                     "request_appointment" -> RequestAppointmentScreen(
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        },
-                        onSubmitClick = {
-                            currentScreen = "patient_appointments"
-                        }
+                        onBackClick = { currentScreen = "dashboard" },
+                        onSubmitClick = { currentScreen = "patient_appointments" }
                     )
 
                     "patient_appointments" -> PatientAppointmentsScreen(
                         appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        }
-                    )
-
-                    "appointment_requests" -> AppointmentRequestsScreen(
-                        appointments = appointments,
-                        onBackClick = {
-                            currentScreen = "dashboard"
-                        }
+                        onBackClick = { currentScreen = "dashboard" }
                     )
                 }
             }
