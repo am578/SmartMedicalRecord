@@ -23,8 +23,13 @@ class MainActivity : ComponentActivity() {
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
-                var currentScreen by remember { mutableStateOf("login") }
-                var userRole by remember { mutableStateOf("") }
+                // إذا المستخدم مسجل دخول مسبقاً، روّحه للـ dashboard مباشرة
+                var currentScreen by remember {
+                    mutableStateOf(
+                        if (authViewModel.isUserLoggedIn()) "dashboard" else "login"
+                    )
+                }
+
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
                 val patients = remember {
@@ -44,8 +49,6 @@ class MainActivity : ComponentActivity() {
                     "login" -> LoginScreen(
                         authViewModel = authViewModel,
                         onLoginSuccess = {
-                            val user = authViewModel.loggedInUser.value
-                            userRole = user?.role?.name ?: ""
                             currentScreen = "dashboard"
                         },
                         onGoToRegister = {
@@ -63,71 +66,18 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    "dashboard" -> {
-                        when (userRole) {
-
-                            "ADMIN" -> AdminDashboardScreen(
-                                onManageUsersClick = {},
-                                onStatisticsClick = {},
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "DOCTOR" -> DoctorDashboardScreen(
-                                onPatientsClick = {
-                                    currentScreen = "patients_list"
-                                },
-                                onAppointmentsClick = {
-                                    currentScreen = "doctor_appointments"
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "RECEPTIONIST" -> ReceptionDashboardScreen(
-                                onRegisterPatientClick = {
-                                    currentScreen = "register_patient"
-                                },
-                                onPatientsClick = {
-                                    currentScreen = "patients_list"
-                                },
-                                onAppointmentsClick = {
-                                    currentScreen = "doctor_appointments"
-                                },
-                                onRequestsClick = {
-                                    currentScreen = "appointment_requests"
-                                },
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            "PATIENT" -> PatientDashboardScreen(
-                                onRequestAppointmentClick = {
-                                    currentScreen = "request_appointment"
-                                },
-                                onMyAppointmentsClick = {
-                                    currentScreen = "patient_appointments"
-                                },
-                                onMyRecordClick = {},
-                                onLogoutClick = {
-                                    authViewModel.loggedInUser.value = null
-                                    userRole = ""
-                                    currentScreen = "login"
-                                }
-                            )
-
-                            else -> Text("Unknown Role")
+                    "dashboard" -> DoctorDashboardScreen(
+                        onPatientsClick = {
+                            currentScreen = "patients_list"
+                        },
+                        onAppointmentsClick = {
+                            currentScreen = "doctor_appointments"
+                        },
+                        onLogoutClick = {
+                            authViewModel.logoutUser()
+                            currentScreen = "login"
                         }
-                    }
+                    )
 
                     "register_patient" -> RegisterPatientScreen(
                         onBackClick = {
