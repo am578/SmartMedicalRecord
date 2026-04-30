@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
-import com.example.medicalrecordapp.auth.AuthViewModel
+import com.example.medicalrecordapp.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
@@ -142,7 +142,7 @@ fun RegisterScreen(
                             else -> {
                                 isLoading = true
                                 registerError = ""
-                                authViewModel.registerUser(email, password) { success, error ->
+                                authViewModel.registerUser(email, password, fullName) { success, error ->
                                     isLoading = false
                                     if (success) {
                                         onRegisterSuccess()
