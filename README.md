@@ -77,5 +77,3 @@ This project was developed as part of an academic project (Mémoire).
 The system is designed to be scalable and ready for backend integration.
 
 ---
-
-## 🚀 Statu
