@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
-                // "loading" عشان ننتظر جلب الـ role من Firestore
                 var currentScreen by remember { mutableStateOf("loading") }
 
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
@@ -55,7 +54,6 @@ class MainActivity : ComponentActivity() {
                     mutableStateListOf<com.example.medicalrecordapp.domain.model.Appointment>()
                 }
 
-                // عند بدء التطبيق: إذا مسجل دخول اجلب الـ role وروّحه للصفحة الصحيحة
                 LaunchedEffect(Unit) {
                     if (authViewModel.isUserLoggedIn()) {
                         authViewModel.getUserRole { role ->
@@ -82,7 +80,6 @@ class MainActivity : ComponentActivity() {
                     "login" -> LoginScreen(
                         authViewModel = authViewModel,
                         onLoginSuccess = {
-                            // بعد الدخول اجلب الـ role ووجّه للصفحة الصحيحة
                             authViewModel.getUserRole { role ->
                                 currentScreen = when (role) {
                                     "doctor" -> "doctor_dashboard"
@@ -112,8 +109,9 @@ class MainActivity : ComponentActivity() {
 
                     // ────── Patient ──────
                     "patient_dashboard" -> PatientDashboardScreen(
-                        onAppointmentsClick = { currentScreen = "patient_appointments" },
                         onRequestAppointmentClick = { currentScreen = "request_appointment" },
+                        onMyAppointmentsClick = { currentScreen = "patient_appointments" },
+                        onMyRecordClick = { /* TODO */ },
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
