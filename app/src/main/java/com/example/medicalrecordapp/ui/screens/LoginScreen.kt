@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
-import com.example.medicalrecordapp.viewmodel.AuthViewModel
+import com.example.medicalrecordapp.auth.AuthViewModel
 
 @Composable
 fun LoginScreen(
@@ -24,20 +24,13 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    val loginError = authViewModel.loginError.value
-    val loggedInUser = authViewModel.loggedInUser.value
-
-    LaunchedEffect(loggedInUser) {
-        if (loggedInUser != null) {
-            onLoginSuccess()
-        }
-    }
+    var loginError by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4FAFF)), // الخلفية العامة فاتحة
+            .background(Color(0xFFF4FAFF)),
         contentAlignment = Alignment.Center
     ) {
 
@@ -47,7 +40,7 @@ fun LoginScreen(
                 .padding(20.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD) // 💙 baby blue
+                containerColor = Color(0xFFE3F2FD)
             )
         ) {
 
@@ -57,19 +50,18 @@ fun LoginScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            )
-             {
+            ) {
 
-                 Box(
-                     modifier = Modifier.fillMaxWidth(),
-                     contentAlignment = Alignment.Center
-                 ) {
-                     Image(
-                         painter = painterResource(id = R.drawable.logo),
-                         contentDescription = "Logo",
-                         modifier = Modifier.height(180.dp)
-                     )
-                 }
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier.height(180.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -118,13 +110,35 @@ fun LoginScreen(
 
                 Button(
                     onClick = {
-                        authViewModel.login(email, password)
+                        if (email.isBlank() || password.isBlank()) {
+                            loginError = "Please enter email and password"
+                            return@Button
+                        }
+                        isLoading = true
+                        loginError = ""
+                        authViewModel.loginUser(email, password) { success, error ->
+                            isLoading = false
+                            if (success) {
+                                onLoginSuccess()
+                            } else {
+                                loginError = error ?: "Login failed"
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp)
+                        .height(52.dp),
+                    enabled = !isLoading
                 ) {
-                    Text("Login")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Login")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
