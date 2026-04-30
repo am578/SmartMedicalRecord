@@ -13,7 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterPatientScreen(
     onBackClick: () -> Unit = {},
@@ -30,6 +33,9 @@ fun RegisterPatientScreen(
 
     val genderOptions = listOf("Male", "Female")
     var genderExpanded by remember { mutableStateOf(false) }
+
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -87,7 +93,6 @@ fun RegisterPatientScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Gender Dropdown
                 ExposedDropdownMenuBox(
                     expanded = genderExpanded,
                     onExpandedChange = { genderExpanded = !genderExpanded }
@@ -156,7 +161,27 @@ fun RegisterPatientScreen(
                             else -> {
                                 formError = ""
                                 isLoading = true
-                                onSaveClick(firstName, lastName, age, gender, phone)
+
+                                val patient = hashMapOf(
+                                    "firstName" to firstName,
+                                    "lastName" to lastName,
+                                    "age" to age,
+                                    "gender" to gender,
+                                    "phone" to phone,
+                                    "createdBy" to (auth.currentUser?.uid ?: ""),
+                                    "createdAt" to System.currentTimeMillis()
+                                )
+
+                                db.collection("patients")
+                                    .add(patient)
+                                    .addOnSuccessListener {
+                                        isLoading = false
+                                        onSaveClick(firstName, lastName, age, gender, phone)
+                                    }
+                                    .addOnFailureListener { e ->
+                                        isLoading = false
+                                        formError = e.message ?: "Failed to save patient"
+                                    }
                             }
                         }
                     },
