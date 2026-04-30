@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1041704869330",
+    "project_id": "smartmedical-6c847",
+    "storage_bucket": "smartmedical-6c847.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1041704869330:android:2ed3768d0890c58becbc0b",
+        "android_client_info": {
+          "package_name": "com.example.medicalrecordapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9L_AsLrRaYk5QciHh8TcRVakS837bLIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
