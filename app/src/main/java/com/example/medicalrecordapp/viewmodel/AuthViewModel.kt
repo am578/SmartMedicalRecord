@@ -1,44 +1,67 @@
 package com.example.medicalrecordapp.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.medicalrecordapp.data.repository.FakeAuthRepositoryImpl
-import com.example.medicalrecordapp.domain.model.User
-import com.example.medicalrecordapp.domain.model.UserRole
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthViewModel : ViewModel() {
 
-    private val repository = FakeAuthRepositoryImpl()
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
 
-    val loggedInUser = mutableStateOf<User?>(null)
-    val loginError = mutableStateOf("")
-
-    fun login(email: String, password: String) {
-        val user = repository.login(email, password)
-        if (user != null) {
-            loggedInUser.value = user
-            loginError.value = ""
-        } else {
-            loginError.value = "Invalid email or password"
-        }
+    //  تسجيل دخول
+    fun loginUser(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true, null)
+                } else {
+                    onResult(false, task.exception?.message)
+                }
+            }
     }
 
-    fun register(fullName: String, email: String, password: String): Boolean {
-        val newUser = User(
-            id = (1..1000).random(),
-            fullName = fullName,
-            email = email,
-            password = password,
-            role = UserRole.PATIENT
-        )
+    //  تسجيل حساب جديد + حفظ البيانات في Firestore
+    fun registerUser(
+        email: String,
+        password: String,
+        fullName: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val uid = auth.currentUser?.uid ?: return@addOnCompleteListener
 
-        val success = repository.register(newUser)
-        if (success) {
-            loggedInUser.value = newUser
-            loginError.value = ""
-        } else {
-            loginError.value = "Email already exists"
-        }
-        return success
+                    val userMap = hashMapOf(
+                        "fullName" to fullName,
+                        "email" to email,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+
+                    db.collection("users")
+                        .document(uid)
+                        .set(userMap)
+                        .addOnSuccessListener {
+                            onResult(true, null)
+                        }
+                        .addOnFailureListener { e ->
+                            onResult(false, e.message)
+                        }
+
+                } else {
+                    onResult(false, task.exception?.message)
+                }
+            }
+    }
+
+    //  تسجيل خروج
+    fun logoutUser() {
+        auth.signOut()
+    }
+
+    //  التحقق هل المستخدم مسجل دخول
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
     }
 }
