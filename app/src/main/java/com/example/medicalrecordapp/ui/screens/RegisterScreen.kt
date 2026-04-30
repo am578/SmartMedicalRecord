@@ -15,12 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
-import com.example.medicalrecordapp.viewmodel.AuthViewModel
+import com.example.medicalrecordapp.auth.AuthViewModel
 
 @Composable
 fun RegisterScreen(
@@ -44,15 +44,8 @@ fun RegisterScreen(
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    val loginError = authViewModel.loginError.value
-    val loggedInUser = authViewModel.loggedInUser.value
-
-    LaunchedEffect(loggedInUser) {
-        if (loggedInUser != null) {
-            onRegisterSuccess()
-        }
-    }
+    var registerError by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -131,9 +124,9 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (loginError.isNotEmpty()) {
+                if (registerError.isNotEmpty()) {
                     Text(
-                        text = loginError,
+                        text = registerError,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -142,13 +135,38 @@ fun RegisterScreen(
 
                 Button(
                     onClick = {
-                        authViewModel.register(fullName, email, password)
+                        when {
+                            fullName.isBlank() -> registerError = "Please enter your full name"
+                            email.isBlank() -> registerError = "Please enter your email"
+                            password.length < 6 -> registerError = "Password must be at least 6 characters"
+                            else -> {
+                                isLoading = true
+                                registerError = ""
+                                authViewModel.registerUser(email, password) { success, error ->
+                                    isLoading = false
+                                    if (success) {
+                                        onRegisterSuccess()
+                                    } else {
+                                        registerError = error ?: "Registration failed"
+                                    }
+                                }
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp)
+                        .height(52.dp),
+                    enabled = !isLoading
                 ) {
-                    Text("Register")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Register")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
