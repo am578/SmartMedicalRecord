@@ -30,17 +30,18 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4FAFF)),
+            // التعديل 1: نستعملو خلفية الثيم بدل اللون الثابت
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
-
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
             shape = RoundedCornerShape(24.dp),
+            // التعديل 2: نستعملو surface الثيم (لي هي البيبي بلو في النهار والرمادي في الليل)
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD)
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
 
@@ -51,15 +52,15 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
+                // التعديل 3: استبدال اللوجو بالجديد نتاعك logo_ai
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.logo),
+                        painter = painterResource(id = R.drawable.logo_ai), // اسم الملف الجديد
                         contentDescription = "Logo",
-                        modifier = Modifier.height(180.dp)
+                        modifier = Modifier.height(150.dp) // صغرناه شوي باش يجي متحوف
                     )
                 }
 
@@ -68,14 +69,17 @@ fun LoginScreen(
                 Text(
                     text = "Welcome Back",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    // التعديل 4: لون النص يتبع الثيم (أبيض في الليل وأسود في النهار)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Login to your account",
-                    color = Color.Gray
+                    // التعديل 5: نستعملو onSurfaceVariant للون الرمادي الذكي
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -84,7 +88,11 @@ fun LoginScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -94,7 +102,11 @@ fun LoginScreen(
                     onValueChange = { password = it },
                     label = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
