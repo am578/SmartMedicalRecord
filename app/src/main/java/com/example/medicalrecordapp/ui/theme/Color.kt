@@ -2,7 +2,7 @@ package com.example.medicalrecordapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val BabyBlue = Color(0xFF89CFF0)
+val BabyBlue = Color(0xFF114BEA)
 val BluePrimary = Color(0xFF2D7FF9)
 val BlueSecondary = Color(0xFF6EA8FE)
 val GreenAccent = Color(0xFF34A853)
