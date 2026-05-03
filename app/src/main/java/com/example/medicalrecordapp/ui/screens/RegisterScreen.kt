@@ -34,7 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-
+import androidx.compose.material3.OutlinedTextFieldDefaults
 @Composable
 fun RegisterScreen(
     authViewModel: AuthViewModel,
@@ -50,7 +50,8 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4FAFF)),
+            // التعديل 1: استعمال خلفية الثيم
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Card(
@@ -58,8 +59,9 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(20.dp),
             shape = RoundedCornerShape(24.dp),
+            // التعديل 2: استعمال surface الثيم (البيبي بلو في النهار والرمادي في الليل)
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD)
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
@@ -84,14 +86,17 @@ fun RegisterScreen(
                 Text(
                     text = "Create Account",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    // التعديل 4: لون النص يتبع الثيم
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Register as a patient",
-                    color = Color.Gray
+                    // التعديل 5: لون رمادي ذكي يتبع الثيم
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -100,7 +105,11 @@ fun RegisterScreen(
                     value = fullName,
                     onValueChange = { fullName = it },
                     label = { Text("Full Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -109,7 +118,11 @@ fun RegisterScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
