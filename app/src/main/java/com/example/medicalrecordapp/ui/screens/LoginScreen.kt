@@ -58,9 +58,9 @@ fun LoginScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.logo_ai), // اسم الملف الجديد
+                        painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
-                        modifier = Modifier.height(150.dp) // صغرناه شوي باش يجي متحوف
+                        modifier = Modifier.size(220.dp)
                     )
                 }
 
