@@ -15,26 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.History
 
 @Composable
 fun PatientDashboardScreen(
-    onRequestAppointmentClick: (String) -> Unit = {}, // نمرر الأعراض هنا
+    onRequestAppointmentClick: () -> Unit = {}, // رجعت بدون پارامتر لأننا سنملأ الأعراض في الصفحة التالية
     onMyAppointmentsClick: () -> Unit = {},
     onMyRecordClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
-    // حالة (State) لحفظ ما يكتبه المريض في خانة الأعراض
-    var symptoms by remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(20.dp)
-            .verticalScroll(rememberScrollState()) // إضافة التمرير إذا كانت الشاشة صغيرة
+            .verticalScroll(rememberScrollState())
     ) {
         Text(
             text = "Patient Dashboard",
@@ -50,61 +44,29 @@ fun PatientDashboardScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // 1. كارد طلب موعد مع خانة الأعراض
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.MedicalServices, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Request Appointment", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // خانة إدخال الأعراض
-                OutlinedTextField(
-                    value = symptoms,
-                    onValueChange = { symptoms = it },
-                    label = { Text("Describe your symptoms") },
-                    placeholder = { Text("e.g. Headache, Fever...") },
-                    modifier = Modifier.fillMaxWidth().height(120.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = { onRequestAppointmentClick(symptoms) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text("Send Appointment Request")
-                }
-            }
-        }
+        // 1. كارد طلب موعد (رجعت كارد عادية وبسيطة)
+        PatientCard(
+            title = "Request Appointment",
+            description = "Send a new appointment request to a doctor",
+            icon = Icons.Default.MedicalServices,
+            onClick = onRequestAppointmentClick
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. كروت المواعيد والسجل الطبي مع الأيقونات
+        // 2. كارد مواعيدي
         PatientCard(
             title = "My Appointments",
-            description = "Check your scheduled appointments",
+            description = "Check your scheduled appointments status",
             icon = Icons.Default.CalendarMonth,
             onClick = onMyAppointmentsClick
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 3. كارد السجل الطبي
         PatientCard(
             title = "My Medical Record",
             description = "View your detailed medical history",
@@ -112,6 +74,7 @@ fun PatientDashboardScreen(
             onClick = onMyRecordClick
         )
 
+        Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
@@ -132,17 +95,35 @@ private fun PatientCard(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    title,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    description,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

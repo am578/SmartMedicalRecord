@@ -26,6 +26,7 @@ import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
+import com.example.medicalrecordapp.ui.screens.MyMedicalRecordScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -111,7 +112,7 @@ class MainActivity : ComponentActivity() {
                     "patient_dashboard" -> PatientDashboardScreen(
                         onRequestAppointmentClick = { currentScreen = "request_appointment" },
                         onMyAppointmentsClick = { currentScreen = "patient_appointments" },
-                        onMyRecordClick = { /* TODO */ },
+                        onMyRecordClick = { currentScreen = "my_medical_record" }, // السهم دوكا راهو يشير للصفحة الجديدة
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
@@ -169,11 +170,17 @@ class MainActivity : ComponentActivity() {
 
                     "request_appointment" -> RequestAppointmentScreen(
                         onBackClick = { currentScreen = "patient_dashboard" },
-                        onSubmitClick = { currentScreen = "patient_appointments" }
+                        onSubmitClick = { doctor, date, time, symptoms ->
+
+                            currentScreen = "patient_appointments"
+                        }
                     )
 
                     "patient_appointments" -> PatientAppointmentsScreen(
                         appointments = appointmentViewModel.getAppointments(),
+                        onBackClick = { currentScreen = "patient_dashboard" }
+                    )
+                    "my_medical_record" -> MyMedicalRecordScreen(
                         onBackClick = { currentScreen = "patient_dashboard" }
                     )
                 }
