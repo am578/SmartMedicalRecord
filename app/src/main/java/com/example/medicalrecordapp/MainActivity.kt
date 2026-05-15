@@ -26,7 +26,6 @@ import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
-import com.example.medicalrecordapp.viewmodel.AdminViewModel
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
 
@@ -40,7 +39,6 @@ class MainActivity : ComponentActivity() {
 
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
-                val adminViewModel = remember { AdminViewModel() }
 
                 var currentScreen by remember { mutableStateOf("loading") }
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
@@ -124,7 +122,7 @@ class MainActivity : ComponentActivity() {
                     "admin_dashboard" -> AdminDashboardScreen(
                         onManageUsersClick = { currentScreen = "patients_list" },
                         onCreateAccountClick = { currentScreen = "admin_create_account" },
-                        onStatisticsClick = { currentScreen = "admin_statistics" },
+                        onStatisticsClick = { },
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
@@ -185,7 +183,7 @@ class MainActivity : ComponentActivity() {
 
                     "request_appointment" -> RequestAppointmentScreen(
                         onBackClick = { currentScreen = "patient_dashboard" },
-                        onSubmitClick = { doctor, date, time, symptoms ->
+                        onSubmitClick = { _, _, _, _ ->
                             currentScreen = "patient_appointments"
                         }
                     )
