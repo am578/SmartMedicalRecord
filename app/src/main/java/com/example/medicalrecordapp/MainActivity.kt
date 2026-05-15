@@ -21,14 +21,14 @@ import com.example.medicalrecordapp.ui.screens.PatientAppointmentsScreen
 import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
 import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
 import com.example.medicalrecordapp.ui.screens.PatientsListScreen
+import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
-import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
+import com.example.medicalrecordapp.viewmodel.AdminViewModel
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-import com.example.medicalrecordapp.viewmodel.AdminViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -61,9 +61,9 @@ class MainActivity : ComponentActivity() {
                     if (authViewModel.isUserLoggedIn()) {
                         authViewModel.getUserRole { role ->
                             currentScreen = when (role) {
-                                "doctor" -> "doctor_dashboard"
-                                "admin" -> "admin_dashboard"
-                                "receptionist" -> "reception_dashboard"
+                                "DOCTOR" -> "doctor_dashboard"
+                                "ADMIN" -> "admin_dashboard"
+                                "RECEPTIONIST" -> "reception_dashboard"
                                 else -> "patient_dashboard"
                             }
                         }
@@ -86,9 +86,9 @@ class MainActivity : ComponentActivity() {
                         onLoginSuccess = {
                             authViewModel.getUserRole { role ->
                                 currentScreen = when (role) {
-                                    "doctor" -> "doctor_dashboard"
-                                    "admin" -> "admin_dashboard"
-                                    "receptionist" -> "reception_dashboard"
+                                    "DOCTOR" -> "doctor_dashboard"
+                                    "ADMIN" -> "admin_dashboard"
+                                    "RECEPTIONIST" -> "reception_dashboard"
                                     else -> "patient_dashboard"
                                 }
                             }
@@ -139,7 +139,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "admin_create_account" -> AdminCreateAccountScreen(
-                        adminViewModel = adminViewModel,
+                        authViewModel = authViewModel,
                         onBackClick = { currentScreen = "admin_dashboard" }
                     )
 
