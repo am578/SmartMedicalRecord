@@ -1,9 +1,8 @@
 package com.example.medicalrecordapp.domain.model
 
 data class User(
-    val id: Int,
-    val fullName: String,
-    val email: String,
-    val password: String,
-    val role: UserRole
+    val id: String = "",
+    val fullName: String = "",
+    val email: String = "",
+    val role: UserRole = UserRole.PATIENT
 )
