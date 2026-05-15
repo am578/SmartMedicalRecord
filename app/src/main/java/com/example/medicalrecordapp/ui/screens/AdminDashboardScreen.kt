@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AdminDashboardScreen(
     onManageUsersClick: () -> Unit = {},
+    onCreateAccountClick: () -> Unit = {},
     onStatisticsClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
@@ -147,6 +147,19 @@ fun AdminDashboardScreen(
                     )
                 ) {
                     Text("Manage Users")
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = onCreateAccountClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF34A853)
+                    )
+                ) {
+                    Text("Create Doctor / Receptionist")
                 }
             }
         }
