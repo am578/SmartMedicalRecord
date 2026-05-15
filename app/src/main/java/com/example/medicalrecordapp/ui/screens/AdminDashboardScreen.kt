@@ -146,7 +146,7 @@ fun AdminDashboardScreen(
                         containerColor = Color(0xFF2D7FF9)
                     )
                 ) {
-                    Text("Manage Users")
+                    Text("View Staff List")  // ← هنا التعديل
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
