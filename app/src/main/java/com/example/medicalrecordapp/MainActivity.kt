@@ -6,8 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.medicalrecordapp.domain.model.Patient
@@ -67,138 +72,161 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                when (currentScreen) {
-                    "loading" -> Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-
-                    "login" -> LoginScreen(
-                        authViewModel = authViewModel,
-                        onLoginSuccess = {
-                            authViewModel.getUserRole { role ->
-                                currentScreen = when (role) {
-                                    "DOCTOR" -> "doctor_dashboard"
-                                    "ADMIN" -> "admin_dashboard"
-                                    "RECEPTIONIST" -> "reception_dashboard"
-                                    else -> "patient_dashboard"
-                                }
-                            }
-                        },
-                        onGoToRegister = { currentScreen = "register" }
-                    )
-
-                    "register" -> RegisterScreen(
-                        authViewModel = authViewModel,
-                        onRegisterSuccess = { currentScreen = "login" },
-                        onBackToLogin = { currentScreen = "login" }
-                    )
-
-                    "doctor_dashboard" -> DoctorDashboardScreen(
-                        onPatientsClick = { currentScreen = "patients_list" },
-                        onAppointmentsClick = { currentScreen = "doctor_appointments" },
-                        onLogoutClick = {
-                            authViewModel.logoutUser()
-                            currentScreen = "login"
-                        }
-                    )
-
-                    "patient_dashboard" -> PatientDashboardScreen(
-                        onRequestAppointmentClick = { currentScreen = "request_appointment" },
-                        onMyAppointmentsClick = { currentScreen = "patient_appointments" },
-                        onMyRecordClick = { currentScreen = "my_medical_record" },
-                        onLogoutClick = {
-                            authViewModel.logoutUser()
-                            currentScreen = "login"
-                        }
-                    )
-
-                    "admin_dashboard" -> AdminDashboardScreen(
-                        onManageUsersClick = { currentScreen = "staff_list" },
-                        onCreateAccountClick = { currentScreen = "admin_create_account" },
-                        onStatisticsClick = { },
-                        onLogoutClick = {
-                            authViewModel.logoutUser()
-                            currentScreen = "login"
-                        }
-                    )
-
-                    "reception_dashboard" -> ReceptionDashboardScreen(
-                        onLogoutClick = {
-                            authViewModel.logoutUser()
-                            currentScreen = "login"
-                        }
-                    )
-
-                    "admin_create_account" -> AdminCreateAccountScreen(
-                        authViewModel = authViewModel,
-                        onBackClick = { currentScreen = "admin_dashboard" }
-                    )
-
-                    "staff_list" -> StaffListScreen(
-                        authViewModel = authViewModel,
-                        onBackClick = { currentScreen = "admin_dashboard" }
-                    )
-
-                    "register_patient" -> RegisterPatientScreen(
-                        onBackClick = { currentScreen = "doctor_dashboard" },
-                        onSaveClick = { firstName, lastName, age, gender, phone ->
-                            patients.add(
-                                Patient(
-                                    id = patients.size + 1,
-                                    firstName = firstName,
-                                    lastName = lastName,
-                                    age = age.toIntOrNull() ?: 0,
-                                    gender = gender,
-                                    phone = phone
-                                )
-                            )
-                            currentScreen = "patients_list"
-                        }
-                    )
-
-                    "patients_list" -> PatientsListScreen(
-                        patients = patients,
-                        onPatientClick = { patient ->
-                            selectedPatient = patient
-                            currentScreen = "patient_details"
-                        },
-                        onBackClick = { currentScreen = "doctor_dashboard" }
-                    )
-
-                    "patient_details" -> {
-                        selectedPatient?.let { patient ->
-                            PatientDetailsScreen(
-                                patient = patient,
-                                onBackClick = { currentScreen = "patients_list" }
-                            )
-                        }
-                    }
-
-                    "doctor_appointments" -> DoctorAppointmentsScreen(
-                        appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = { currentScreen = "doctor_dashboard" }
-                    )
-
-                    "request_appointment" -> RequestAppointmentScreen(
-                        onBackClick = { currentScreen = "patient_dashboard" },
-                        onSubmitClick = { _, _, _, _ ->
-                            currentScreen = "patient_appointments"
-                        }
-                    )
-
-                    "patient_appointments" -> PatientAppointmentsScreen(
-                        appointments = appointmentViewModel.getAppointments(),
-                        onBackClick = { currentScreen = "patient_dashboard" }
-                    )
-
-                    "my_medical_record" -> MyMedicalRecordScreen(
-                        onBackClick = { currentScreen = "patient_dashboard" }
-                    )
-                }
+                AppNavigation(
+                    currentScreen = currentScreen,
+                    authViewModel = authViewModel,
+                    appointmentViewModel = appointmentViewModel,
+                    patients = patients,
+                    selectedPatient = selectedPatient,
+                    onScreenChange = { currentScreen = it },
+                    onPatientSelected = { selectedPatient = it }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun AppNavigation(
+    currentScreen: String,
+    authViewModel: AuthViewModel,
+    appointmentViewModel: AppointmentViewModel,
+    patients: androidx.compose.runtime.snapshots.SnapshotStateList<<Patient>,
+    selectedPatient: Patient?,
+    onScreenChange: (String) -> Unit,
+    onPatientSelected: (Patient?) -> Unit
+) {
+    when (currentScreen) {
+        "loading" -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+
+        "login" -> LoginScreen(
+            authViewModel = authViewModel,
+            onLoginSuccess = {
+                authViewModel.getUserRole { role ->
+                    onScreenChange(
+                        when (role) {
+                            "DOCTOR" -> "doctor_dashboard"
+                            "ADMIN" -> "admin_dashboard"
+                            "RECEPTIONIST" -> "reception_dashboard"
+                            else -> "patient_dashboard"
+                        }
+                    )
+                }
+            },
+            onGoToRegister = { onScreenChange("register") }
+        )
+
+        "register" -> RegisterScreen(
+            authViewModel = authViewModel,
+            onRegisterSuccess = { onScreenChange("login") },
+            onBackToLogin = { onScreenChange("login") }
+        )
+
+        "doctor_dashboard" -> DoctorDashboardScreen(
+            onPatientsClick = { onScreenChange("patients_list") },
+            onAppointmentsClick = { onScreenChange("doctor_appointments") },
+            onLogoutClick = {
+                authViewModel.logoutUser()
+                onScreenChange("login")
+            }
+        )
+
+        "patient_dashboard" -> PatientDashboardScreen(
+            onRequestAppointmentClick = { onScreenChange("request_appointment") },
+            onMyAppointmentsClick = { onScreenChange("patient_appointments") },
+            onMyRecordClick = { onScreenChange("my_medical_record") },
+            onLogoutClick = {
+                authViewModel.logoutUser()
+                onScreenChange("login")
+            }
+        )
+
+        "admin_dashboard" -> AdminDashboardScreen(
+            onManageUsersClick = { onScreenChange("staff_list") },
+            onCreateAccountClick = { onScreenChange("admin_create_account") },
+            onStatisticsClick = { },
+            onLogoutClick = {
+                authViewModel.logoutUser()
+                onScreenChange("login")
+            }
+        )
+
+        "reception_dashboard" -> ReceptionDashboardScreen(
+            onLogoutClick = {
+                authViewModel.logoutUser()
+                onScreenChange("login")
+            }
+        )
+
+        "admin_create_account" -> AdminCreateAccountScreen(
+            authViewModel = authViewModel,
+            onBackClick = { onScreenChange("admin_dashboard") }
+        )
+
+        "staff_list" -> StaffListScreen(
+            authViewModel = authViewModel,
+            onBackClick = { onScreenChange("admin_dashboard") }
+        )
+
+        "register_patient" -> RegisterPatientScreen(
+            onBackClick = { onScreenChange("doctor_dashboard") },
+            onSaveClick = { firstName, lastName, age, gender, phone ->
+                patients.add(
+                    Patient(
+                        id = patients.size + 1,
+                        firstName = firstName,
+                        lastName = lastName,
+                        age = age.toIntOrNull() ?: 0,
+                        gender = gender,
+                        phone = phone
+                    )
+                )
+                onScreenChange("patients_list")
+            }
+        )
+
+        "patients_list" -> PatientsListScreen(
+            patients = patients,
+            onPatientClick = { patient ->
+                onPatientSelected(patient)
+                onScreenChange("patient_details")
+            },
+            onBackClick = { onScreenChange("doctor_dashboard") }
+        )
+
+        "patient_details" -> {
+            selectedPatient?.let { patient ->
+                PatientDetailsScreen(
+                    patient = patient,
+                    onBackClick = { onScreenChange("patients_list") }
+                )
+            }
+        }
+
+        "doctor_appointments" -> DoctorAppointmentsScreen(
+            appointments = appointmentViewModel.getAppointments(),
+            onBackClick = { onScreenChange("doctor_dashboard") }
+        )
+
+        "request_appointment" -> RequestAppointmentScreen(
+            onBackClick = { onScreenChange("patient_dashboard") },
+            onSubmitClick = { _, _, _, _ ->
+                onScreenChange("patient_appointments")
+            }
+        )
+
+        "patient_appointments" -> PatientAppointmentsScreen(
+            appointments = appointmentViewModel.getAppointments(),
+            onBackClick = { onScreenChange("patient_dashboard") }
+        )
+
+        "my_medical_record" -> MyMedicalRecordScreen(
+            onBackClick = { onScreenChange("patient_dashboard") }
+        )
     }
 }
