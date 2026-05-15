@@ -51,10 +51,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                val appointments = remember {
-                    mutableStateListOf<com.example.medicalrecordapp.domain.model.Appointment>()
-                }
-
                 LaunchedEffect(Unit) {
                     if (authViewModel.isUserLoggedIn()) {
                         authViewModel.getUserRole { role ->
@@ -71,7 +67,6 @@ class MainActivity : ComponentActivity() {
                 }
 
                 when (currentScreen) {
-
                     "loading" -> Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
