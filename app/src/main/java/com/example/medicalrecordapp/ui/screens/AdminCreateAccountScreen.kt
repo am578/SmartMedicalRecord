@@ -20,8 +20,6 @@ import kotlin.random.Random
 @Composable
 fun AdminCreateAccountScreen(
     authViewModel: AuthViewModel,
-    adminEmail: String,
-    adminPassword: String,
     onBackClick: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
@@ -32,7 +30,6 @@ fun AdminCreateAccountScreen(
     var successMessage by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Dialog يعرض بيانات الحساب الجديد
     var showCredentialsDialog by remember { mutableStateOf(false) }
     var createdEmail by remember { mutableStateOf("") }
     var createdPassword by remember { mutableStateOf("") }
@@ -76,7 +73,6 @@ fun AdminCreateAccountScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // حقل كلمة السر مع زر توليد تلقائي
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -141,8 +137,6 @@ fun AdminCreateAccountScreen(
                 errorMessage = ""
 
                 authViewModel.createStaffAccount(
-                    adminEmail = adminEmail,
-                    adminPassword = adminPassword,
                     staffEmail = email,
                     staffPassword = password,
                     fullName = fullName,
@@ -156,7 +150,6 @@ fun AdminCreateAccountScreen(
                         createdRole = selectedRole.name
                         showCredentialsDialog = true
 
-                        // نفضي الحقول
                         fullName = ""
                         email = ""
                         password = ""
@@ -182,7 +175,6 @@ fun AdminCreateAccountScreen(
         }
     }
 
-    // Dialog يعرض البيانات للأدمن عشان يعطيها للموظف
     if (showCredentialsDialog) {
         Dialog(onDismissRequest = { showCredentialsDialog = false }) {
             Card(
