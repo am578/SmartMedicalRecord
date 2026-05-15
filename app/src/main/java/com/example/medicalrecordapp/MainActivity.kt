@@ -11,22 +11,24 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.medicalrecordapp.domain.model.Patient
+import com.example.medicalrecordapp.ui.screens.AdminCreateAccountScreen
 import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
 import com.example.medicalrecordapp.ui.screens.DoctorAppointmentsScreen
 import com.example.medicalrecordapp.ui.screens.DoctorDashboardScreen
 import com.example.medicalrecordapp.ui.screens.LoginScreen
+import com.example.medicalrecordapp.ui.screens.MyMedicalRecordScreen
 import com.example.medicalrecordapp.ui.screens.PatientAppointmentsScreen
 import com.example.medicalrecordapp.ui.screens.PatientDashboardScreen
 import com.example.medicalrecordapp.ui.screens.PatientDetailsScreen
 import com.example.medicalrecordapp.ui.screens.PatientsListScreen
-import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
+import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-import com.example.medicalrecordapp.ui.screens.MyMedicalRecordScreen
+import com.example.medicalrecordapp.viewmodel.AdminViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -38,9 +40,9 @@ class MainActivity : ComponentActivity() {
 
                 val authViewModel = remember { AuthViewModel() }
                 val appointmentViewModel = remember { AppointmentViewModel() }
+                val adminViewModel = remember { AdminViewModel() }
 
                 var currentScreen by remember { mutableStateOf("loading") }
-
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
                 val patients = remember {
@@ -61,6 +63,7 @@ class MainActivity : ComponentActivity() {
                             currentScreen = when (role) {
                                 "doctor" -> "doctor_dashboard"
                                 "admin" -> "admin_dashboard"
+                                "receptionist" -> "reception_dashboard"
                                 else -> "patient_dashboard"
                             }
                         }
@@ -85,6 +88,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = when (role) {
                                     "doctor" -> "doctor_dashboard"
                                     "admin" -> "admin_dashboard"
+                                    "receptionist" -> "reception_dashboard"
                                     else -> "patient_dashboard"
                                 }
                             }
@@ -98,7 +102,6 @@ class MainActivity : ComponentActivity() {
                         onBackToLogin = { currentScreen = "login" }
                     )
 
-                    // ────── Doctor ──────
                     "doctor_dashboard" -> DoctorDashboardScreen(
                         onPatientsClick = { currentScreen = "patients_list" },
                         onAppointmentsClick = { currentScreen = "doctor_appointments" },
@@ -108,26 +111,38 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    // ────── Patient ──────
                     "patient_dashboard" -> PatientDashboardScreen(
                         onRequestAppointmentClick = { currentScreen = "request_appointment" },
                         onMyAppointmentsClick = { currentScreen = "patient_appointments" },
-                        onMyRecordClick = { currentScreen = "my_medical_record" }, // السهم دوكا راهو يشير للصفحة الجديدة
+                        onMyRecordClick = { currentScreen = "my_medical_record" },
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
                         }
                     )
 
-                    // ────── Admin ──────
                     "admin_dashboard" -> AdminDashboardScreen(
+                        onManageUsersClick = { currentScreen = "patients_list" },
+                        onCreateAccountClick = { currentScreen = "admin_create_account" },
+                        onStatisticsClick = { currentScreen = "admin_statistics" },
                         onLogoutClick = {
                             authViewModel.logoutUser()
                             currentScreen = "login"
                         }
                     )
 
-                    // ────── Shared screens ──────
+                    "reception_dashboard" -> ReceptionDashboardScreen(
+                        onLogoutClick = {
+                            authViewModel.logoutUser()
+                            currentScreen = "login"
+                        }
+                    )
+
+                    "admin_create_account" -> AdminCreateAccountScreen(
+                        adminViewModel = adminViewModel,
+                        onBackClick = { currentScreen = "admin_dashboard" }
+                    )
+
                     "register_patient" -> RegisterPatientScreen(
                         onBackClick = { currentScreen = "doctor_dashboard" },
                         onSaveClick = { firstName, lastName, age, gender, phone ->
@@ -171,7 +186,6 @@ class MainActivity : ComponentActivity() {
                     "request_appointment" -> RequestAppointmentScreen(
                         onBackClick = { currentScreen = "patient_dashboard" },
                         onSubmitClick = { doctor, date, time, symptoms ->
-
                             currentScreen = "patient_appointments"
                         }
                     )
@@ -180,6 +194,7 @@ class MainActivity : ComponentActivity() {
                         appointments = appointmentViewModel.getAppointments(),
                         onBackClick = { currentScreen = "patient_dashboard" }
                     )
+
                     "my_medical_record" -> MyMedicalRecordScreen(
                         onBackClick = { currentScreen = "patient_dashboard" }
                     )
