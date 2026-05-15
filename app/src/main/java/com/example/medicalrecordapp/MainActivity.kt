@@ -25,6 +25,7 @@ import com.example.medicalrecordapp.ui.screens.ReceptionDashboardScreen
 import com.example.medicalrecordapp.ui.screens.RegisterPatientScreen
 import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
+import com.example.medicalrecordapp.ui.screens.StaffListScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
 import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
                 var currentScreen by remember { mutableStateOf("loading") }
-                var selectedPatient by remember { mutableStateOf<Patient?>(null) }
+                var selectedPatient by remember { mutableStateOf<<Patient?>(null) }
 
                 val patients = remember {
                     mutableStateListOf(
@@ -115,7 +116,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "admin_dashboard" -> AdminDashboardScreen(
-                        onManageUsersClick = { currentScreen = "patients_list" },
+                        onManageUsersClick = { currentScreen = "staff_list" },
                         onCreateAccountClick = { currentScreen = "admin_create_account" },
                         onStatisticsClick = { },
                         onLogoutClick = {
@@ -132,6 +133,11 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "admin_create_account" -> AdminCreateAccountScreen(
+                        authViewModel = authViewModel,
+                        onBackClick = { currentScreen = "admin_dashboard" }
+                    )
+
+                    "staff_list" -> StaffListScreen(
                         authViewModel = authViewModel,
                         onBackClick = { currentScreen = "admin_dashboard" }
                     )
