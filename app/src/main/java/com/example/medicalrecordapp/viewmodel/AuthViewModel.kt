@@ -15,7 +15,13 @@ class AuthViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // ====== قائمة الموظفين (دكاترة + استقبال) ======
+    // ✅ نحفظ بيانات الأدمن تلقائياً عند تسجيل الدخول
+    var currentUserEmail: String = ""
+        private set
+    var currentUserPassword: String = ""
+        private set
+
+    // ====== قائمة الموظفين ======
     private val _staffList = MutableStateFlow<List<User>>(emptyList())
     val staffList: StateFlow<List<User>> = _staffList
 
@@ -25,6 +31,10 @@ class AuthViewModel : ViewModel() {
         password: String,
         onResult: (Boolean, String?) -> Unit
     ) {
+        // نحفظ البيانات عشان نرجع الأدمن بعد إنشاء حساب
+        currentUserEmail = email
+        currentUserPassword = password
+
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -83,18 +93,23 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // ====== إنشاء حساب موظف (دكتور/استقبال) ======
-    // ⚠️ المشكلة: createUser يسجل دخول المستخدم الجديد ويطيح الأدمن
-    // ✅ الحل: نحفظ بيانات الأدمن ونرجعه بعد الإنشاء
+    // ====== إنشاء حساب موظف ======
     fun createStaffAccount(
-        adminEmail: String,
-        adminPassword: String,
         staffEmail: String,
         staffPassword: String,
         fullName: String,
         role: UserRole,
         onResult: (Boolean, String?, String?) -> Unit
     ) {
+        // نستخدم البيانات المحفوظة تلقائياً
+        val adminEmail = currentUserEmail
+        val adminPassword = currentUserPassword
+
+        if (adminEmail.isBlank() || adminPassword.isBlank()) {
+            onResult(false, "Admin session expired. Please login again.", null)
+            return
+        }
+
         auth.createUserWithEmailAndPassword(staffEmail, staffPassword)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -166,7 +181,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ====== حذف موظف من Firestore ======
+    // ====== حذف موظف ======
     fun deleteStaffUser(userId: String, onResult: (Boolean, String?) -> Unit) {
         db.collection("users").document(userId).delete()
             .addOnSuccessListener { onResult(true, null) }
@@ -194,6 +209,8 @@ class AuthViewModel : ViewModel() {
     // ====== تسجيل الخروج ======
     fun logoutUser() {
         auth.signOut()
+        currentUserEmail = ""
+        currentUserPassword = ""
     }
 
     // ====== هل المستخدم مسجل دخول؟ ======
