@@ -2,7 +2,6 @@ package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,13 +10,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,23 +36,31 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
-import androidx.compose.material3.OutlinedTextFieldDefaults
+
 @Composable
 fun RegisterScreen(
     authViewModel: AuthViewModel,
     onRegisterSuccess: () -> Unit = {},
     onBackToLogin: () -> Unit = {}
 ) {
-    var fullName by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var familyName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var cin by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var dateOfBirth by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var bloodGroup by remember { mutableStateOf("") }
+    var chronicDiseases by remember { mutableStateOf("") }
+
     var registerError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // التعديل 1: استعمال خلفية الثيم
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
@@ -59,7 +69,6 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(20.dp),
             shape = RoundedCornerShape(24.dp),
-            // التعديل 2: استعمال surface الثيم (البيبي بلو في النهار والرمادي في الليل)
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -67,6 +76,7 @@ fun RegisterScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -77,7 +87,7 @@ fun RegisterScreen(
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
-                        modifier = Modifier.size(220.dp)
+                        modifier = Modifier.size(180.dp)
                     )
                 }
 
@@ -87,24 +97,34 @@ fun RegisterScreen(
                     text = "Create Account",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    // التعديل 4: لون النص يتبع الثيم
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Register as a patient",
-                    // التعديل 5: لون رمادي ذكي يتبع الثيم
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 OutlinedTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text("Full Name") },
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = familyName,
+                    onValueChange = { familyName = it },
+                    label = { Text("Family Name") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -132,7 +152,105 @@ fun RegisterScreen(
                     onValueChange = { password = it },
                     label = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = cin,
+                    onValueChange = { cin = it },
+                    label = { Text("CIN / ID Card Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Phone") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = dateOfBirth,
+                    onValueChange = { dateOfBirth = it },
+                    label = { Text("Date of Birth") },
+                    placeholder = { Text("DD/MM/YYYY") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = gender,
+                    onValueChange = { gender = it },
+                    label = { Text("Gender") },
+                    placeholder = { Text("Male / Female") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("Address") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = bloodGroup,
+                    onValueChange = { bloodGroup = it },
+                    label = { Text("Blood Group") },
+                    placeholder = { Text("A+, A-, B+, B-, AB+, AB-, O+, O-") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = chronicDiseases,
+                    onValueChange = { chronicDiseases = it },
+                    label = { Text("Chronic Diseases") },
+                    placeholder = { Text("None / Diabetes / Asthma...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -149,13 +267,34 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         when {
-                            fullName.isBlank() -> registerError = "Please enter your full name"
+                            firstName.isBlank() -> registerError = "Please enter your first name"
+                            familyName.isBlank() -> registerError = "Please enter your family name"
                             email.isBlank() -> registerError = "Please enter your email"
                             password.length < 6 -> registerError = "Password must be at least 6 characters"
+                            cin.isBlank() -> registerError = "Please enter your CIN"
+                            phone.isBlank() -> registerError = "Please enter your phone number"
+                            dateOfBirth.isBlank() -> registerError = "Please enter your date of birth"
+                            gender.isBlank() -> registerError = "Please enter your gender"
+                            address.isBlank() -> registerError = "Please enter your address"
+                            bloodGroup.isBlank() -> registerError = "Please enter your blood group"
+                            chronicDiseases.isBlank() -> registerError = "Please enter chronic diseases or write None"
                             else -> {
                                 isLoading = true
                                 registerError = ""
-                                authViewModel.registerUser(email, password, fullName) { success, error ->
+
+                                authViewModel.registerUser(
+                                    email = email,
+                                    password = password,
+                                    firstName = firstName,
+                                    familyName = familyName,
+                                    cin = cin,
+                                    phone = phone,
+                                    dateOfBirth = dateOfBirth,
+                                    gender = gender,
+                                    address = address,
+                                    bloodGroup = bloodGroup,
+                                    chronicDiseases = chronicDiseases
+                                ) { success, error ->
                                     isLoading = false
                                     if (success) {
                                         onRegisterSuccess()

@@ -10,7 +10,11 @@ class AuthViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
     // تسجيل دخول
-    fun loginUser(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
+    fun loginUser(
+        email: String,
+        password: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -21,30 +25,57 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // تسجيل حساب جديد — role = "patient" دائماً تلقائياً
+    // تسجيل حساب جديد — المريض فقط يستطيع إنشاء حساب
+    // role = "patient" دائماً تلقائياً
     fun registerUser(
         email: String,
         password: String,
-        fullName: String,
+        firstName: String,
+        familyName: String,
+        cin: String,
+        phone: String,
+        dateOfBirth: String,
+        gender: String,
+        address: String,
+        bloodGroup: String,
+        chronicDiseases: String,
         onResult: (Boolean, String?) -> Unit
     ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val uid = auth.currentUser?.uid ?: return@addOnCompleteListener
+
+                    val uid = auth.currentUser?.uid
+
+                    if (uid == null) {
+                        onResult(false, "User ID not found")
+                        return@addOnCompleteListener
+                    }
 
                     val userMap = hashMapOf(
-                        "fullName" to fullName,
+                        "firstName" to firstName,
+                        "familyName" to familyName,
                         "email" to email,
-                        "role" to "patient",   // ← دائماً patient عند التسجيل
+                        "cin" to cin,
+                        "phone" to phone,
+                        "dateOfBirth" to dateOfBirth,
+                        "gender" to gender,
+                        "address" to address,
+                        "bloodGroup" to bloodGroup,
+                        "chronicDiseases" to chronicDiseases,
+                        "role" to "patient",
                         "createdAt" to System.currentTimeMillis()
                     )
 
                     db.collection("users")
                         .document(uid)
                         .set(userMap)
-                        .addOnSuccessListener { onResult(true, null) }
-                        .addOnFailureListener { e -> onResult(false, e.message) }
+                        .addOnSuccessListener {
+                            onResult(true, null)
+                        }
+                        .addOnFailureListener { e ->
+                            onResult(false, e.message)
+                        }
 
                 } else {
                     onResult(false, task.exception?.message)
@@ -54,7 +85,13 @@ class AuthViewModel : ViewModel() {
 
     // جيب الـ role من Firestore بعد الدخول
     fun getUserRole(onResult: (String) -> Unit) {
-        val uid = auth.currentUser?.uid ?: return onResult("patient")
+        val uid = auth.currentUser?.uid
+
+        if (uid == null) {
+            onResult("patient")
+            return
+        }
+
         db.collection("users")
             .document(uid)
             .get()
@@ -63,7 +100,7 @@ class AuthViewModel : ViewModel() {
                 onResult(role)
             }
             .addOnFailureListener {
-                onResult("patient") // fallback
+                onResult("patient")
             }
     }
 
