@@ -1,14 +1,20 @@
 package com.example.medicalrecordapp.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.medicalrecordapp.data.repository.FakePatientRepositoryImpl
+import com.example.medicalrecordapp.data.repository.FirebasePatientRepository
 import com.example.medicalrecordapp.domain.model.Patient
 
 class PatientViewModel : ViewModel() {
 
-    private val repository = FakePatientRepositoryImpl()
+    private val repository = FirebasePatientRepository()
 
-    fun getPatients(): List<Patient> {
-        return repository.getPatients()
+    fun getPatients(
+        onSuccess: (List<Patient>) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        repository.getPatients(
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
     }
 }

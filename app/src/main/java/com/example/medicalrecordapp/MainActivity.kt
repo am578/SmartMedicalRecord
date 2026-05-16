@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.medicalrecordapp.domain.model.Appointment
 import com.example.medicalrecordapp.domain.model.Patient
 import com.example.medicalrecordapp.ui.screens.AdminCreateAccountScreen
 import com.example.medicalrecordapp.ui.screens.AdminDashboardScreen
@@ -32,8 +34,8 @@ import com.example.medicalrecordapp.ui.screens.RegisterScreen
 import com.example.medicalrecordapp.ui.screens.RequestAppointmentScreen
 import com.example.medicalrecordapp.ui.screens.StaffListScreen
 import com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme
-import com.example.medicalrecordapp.viewmodel.AppointmentViewModel
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
 
@@ -44,18 +46,89 @@ class MainActivity : ComponentActivity() {
             MedicalRecordAppTheme {
 
                 val authViewModel = remember { AuthViewModel() }
-                val appointmentViewModel = remember { AppointmentViewModel() }
 
                 var currentScreen by remember { mutableStateOf("loading") }
                 var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
-                // مؤقتًا: قائمة مرضى محلية، بعدها نقدر نربطها بـ Firestore
                 val patients = remember {
-                    mutableStateListOf(
-                        Patient(1, "Ahmed", "Benali", 25, "Male", "0550123456"),
-                        Patient(2, "Sara", "Amrani", 30, "Female", "0661234567"),
-                        Patient(3, "Yacine", "Boudiaf", 40, "Male", "0777654321")
-                    )
+                    mutableStateListOf<Patient>()
+                }
+
+                val appointments = remember {
+                    mutableStateListOf<Appointment>()
+                }
+
+                DisposableEffect(Unit) {
+                    val db = FirebaseFirestore.getInstance()
+
+                    val patientsListener = db.collection("patients")
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                return@addSnapshotListener
+                            }
+
+                            patients.clear()
+
+                            snapshot?.documents?.forEachIndexed { index, document ->
+                                val firstName = document.getString("firstName") ?: ""
+
+                                val familyName = document.getString("familyName")
+                                    ?: document.getString("lastName")
+                                    ?: ""
+
+                                val gender = document.getString("gender") ?: ""
+                                val phone = document.getString("phone") ?: ""
+
+                                val ageValue = document.get("age")
+                                val age = when (ageValue) {
+                                    is Long -> ageValue.toInt()
+                                    is Int -> ageValue
+                                    is String -> ageValue.toIntOrNull() ?: 0
+                                    else -> 0
+                                }
+                                 patients.add(
+                                Patient(
+                                    id = index + 1,
+                                    firstName = firstName,
+                                    lastName = familyName,
+                                    age = age,
+                                    gender = gender,
+                                    phone = phone
+                                )
+                                )
+                            }
+                        }
+
+                    val appointmentsListener = db.collection("appointments")
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                return@addSnapshotListener
+                            }
+
+                            appointments.clear()
+
+                            snapshot?.documents?.forEachIndexed { index, document ->
+                                val patientName = document.getString("patientName") ?: ""
+                                val date = document.getString("date") ?: ""
+                                val time = document.getString("time") ?: ""
+                                val status = document.getString("status") ?: "Pending"
+
+                                appointments.add(
+                                    Appointment(
+                                        id = index + 1,
+                                        patientName = patientName,
+                                        date = date,
+                                        time = time,
+                                        status = status
+                                    )
+                                )
+                            }
+                        }
+
+                    onDispose {
+                        patientsListener.remove()
+                        appointmentsListener.remove()
+                    }
                 }
 
                 LaunchedEffect(Unit) {
@@ -76,8 +149,8 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(
                     currentScreen = currentScreen,
                     authViewModel = authViewModel,
-                    appointmentViewModel = appointmentViewModel,
                     patients = patients,
+                    appointments = appointments,
                     selectedPatient = selectedPatient,
                     onScreenChange = { currentScreen = it },
                     onPatientSelected = { selectedPatient = it }
@@ -89,13 +162,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppNavigation(
-     currentScreen: String,
-authViewModel: AuthViewModel,
-appointmentViewModel: AppointmentViewModel,
-patients: androidx.compose.runtime.snapshots.SnapshotStateList<Patient>,
-selectedPatient: Patient?,
-onScreenChange: (String) -> Unit,
-onPatientSelected: (Patient?) -> Unit
+    currentScreen: String,
+    authViewModel: AuthViewModel,
+    patients: androidx.compose.runtime.snapshots.SnapshotStateList<Patient>,
+    appointments: androidx.compose.runtime.snapshots.SnapshotStateList<Appointment>,
+    selectedPatient: Patient?,
+    onScreenChange: (String) -> Unit,
+    onPatientSelected: (Patient?) -> Unit
 ) {
     when (currentScreen) {
 
@@ -158,7 +231,6 @@ onPatientSelected: (Patient?) -> Unit
             }
         )
 
-        // صفحة السكرتير بعد التعديل
         "reception_dashboard" -> ReceptionDashboardScreen(
             onRegisterPatientClick = {
                 onScreenChange("register_patient")
@@ -190,28 +262,19 @@ onPatientSelected: (Patient?) -> Unit
 
         "register_patient" -> RegisterPatientScreen(
             onBackClick = { onScreenChange("reception_dashboard") },
-            onSaveClick = { firstName, familyName, cin, phone, dateOfBirth, gender, address, bloodGroup, chronicDiseases ->
-                patients.add(
-                    Patient(
-                        id = patients.size + 1,
-                        firstName = firstName,
-                        lastName = familyName,
-                        age = 0,
-                        gender = gender,
-                        phone = phone
-                    )
-                )
+            onSaveClick = { _, _, _, _, _, _, _, _, _ ->
                 onScreenChange("patients_list")
             }
         )
+
         "patients_list" -> PatientsListScreen(
-        patients = patients,
-        onPatientClick = { patient ->
-            onPatientSelected(patient)
-            onScreenChange("patient_details")
-        },
-        onBackClick = { onScreenChange("reception_dashboard") }
-    )
+            patients = patients,
+            onPatientClick = { patient ->
+                onPatientSelected(patient)
+                onScreenChange("patient_details")
+            },
+            onBackClick = { onScreenChange("reception_dashboard") }
+        )
 
         "patient_details" -> {
             selectedPatient?.let { patient ->
@@ -223,7 +286,7 @@ onPatientSelected: (Patient?) -> Unit
         }
 
         "doctor_appointments" -> DoctorAppointmentsScreen(
-            appointments = appointmentViewModel.getAppointments(),
+            appointments = appointments,
             onBackClick = { onScreenChange("reception_dashboard") }
         )
 
@@ -235,12 +298,12 @@ onPatientSelected: (Patient?) -> Unit
         )
 
         "patient_appointments" -> PatientAppointmentsScreen(
-            appointments = appointmentViewModel.getAppointments(),
+            appointments = appointments,
             onBackClick = { onScreenChange("patient_dashboard") }
         )
 
         "my_medical_record" -> MyMedicalRecordScreen(
-            onBackClick = { onScreenChange("patient_dashboard") }
-        )
+             onBackClick = { onScreenChange("patient_dashboard") }
+            )
     }
 }
