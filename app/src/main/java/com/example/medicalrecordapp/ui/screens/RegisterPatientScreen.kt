@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,19 +20,37 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun RegisterPatientScreen(
     onBackClick: () -> Unit = {},
-    onSaveClick: (String, String, String, String, String) -> Unit = { _, _, _, _, _ -> }
+    onSaveClick: (
+        firstName: String,
+        familyName: String,
+        cin: String,
+        phone: String,
+        dateOfBirth: String,
+        gender: String,
+        address: String,
+        bloodGroup: String,
+        chronicDiseases: String
+    ) -> Unit = { _, _, _, _, _, _, _, _, _ -> }
 ) {
 
     var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
+    var familyName by remember { mutableStateOf("") }
+    var cin by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    var dateOfBirth by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var bloodGroup by remember { mutableStateOf("") }
+    var chronicDiseases by remember { mutableStateOf("") }
+
     var formError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     val genderOptions = listOf("Male", "Female")
     var genderExpanded by remember { mutableStateOf(false) }
+
+    val bloodGroupOptions = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+    var bloodGroupExpanded by remember { mutableStateOf(false) }
 
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
@@ -41,8 +59,8 @@ fun RegisterPatientScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFEFF7FF))
-            .padding(20.dp)
             .verticalScroll(rememberScrollState())
+            .padding(20.dp)
     ) {
 
         Text(
@@ -73,9 +91,9 @@ fun RegisterPatientScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = lastName,
-                    onValueChange = { lastName = it },
-                    label = { Text("Last Name") },
+                    value = familyName,
+                    onValueChange = { familyName = it },
+                    label = { Text("Family Name") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -83,12 +101,36 @@ fun RegisterPatientScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = age,
-                    onValueChange = { if (it.all { c -> c.isDigit() }) age = it },
-                    label = { Text("Age") },
+                    value = cin,
+                    onValueChange = { cin = it },
+                    label = { Text("CIN / ID Card Number") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = {
+                         if (it.all { c -> c.isDigit() || c == '+' }) phone = it
+                    },
+                    label = { Text("Phone") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = dateOfBirth,
+                    onValueChange = { dateOfBirth = it },
+                    label = { Text("Date of Birth") },
+                    placeholder = { Text("DD/MM/YYYY") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -109,6 +151,7 @@ fun RegisterPatientScreen(
                             .fillMaxWidth()
                             .menuAnchor()
                     )
+
                     ExposedDropdownMenu(
                         expanded = genderExpanded,
                         onDismissRequest = { genderExpanded = false }
@@ -128,12 +171,57 @@ fun RegisterPatientScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = phone,
-                    onValueChange = { if (it.all { c -> c.isDigit() || c == '+' }) phone = it },
-                    label = { Text("Phone") },
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("Address") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = bloodGroupExpanded,
+                    onExpandedChange = { bloodGroupExpanded = !bloodGroupExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = bloodGroup,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Blood Group") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodGroupExpanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = bloodGroupExpanded,
+                        onDismissRequest = { bloodGroupExpanded = false }
+                    ) {
+                        bloodGroupOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    bloodGroup = option
+                                    bloodGroupExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                     value = chronicDiseases,
+                onValueChange = { chronicDiseases = it },
+                label = { Text("Chronic Diseases") },
+                placeholder = { Text("None / Diabetes / Asthma...") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -152,22 +240,30 @@ fun RegisterPatientScreen(
                     onClick = {
                         when {
                             firstName.isBlank() -> formError = "Please enter first name"
-                            lastName.isBlank() -> formError = "Please enter last name"
-                            age.isBlank() -> formError = "Please enter age"
-                            age.toIntOrNull() == null || age.toInt() !in 0..150 -> formError = "Please enter a valid age"
-                            gender.isBlank() -> formError = "Please select gender"
+                            familyName.isBlank() -> formError = "Please enter family name"
+                            cin.isBlank() -> formError = "Please enter CIN"
                             phone.isBlank() -> formError = "Please enter phone number"
                             phone.length < 9 -> formError = "Please enter a valid phone number"
+                            dateOfBirth.isBlank() -> formError = "Please enter date of birth"
+                            gender.isBlank() -> formError = "Please select gender"
+                            address.isBlank() -> formError = "Please enter address"
+                            bloodGroup.isBlank() -> formError = "Please select blood group"
+                            chronicDiseases.isBlank() -> formError = "Please enter chronic diseases or write None"
+
                             else -> {
                                 formError = ""
                                 isLoading = true
 
                                 val patient = hashMapOf(
                                     "firstName" to firstName,
-                                    "lastName" to lastName,
-                                    "age" to age,
-                                    "gender" to gender,
+                                    "familyName" to familyName,
+                                    "cin" to cin,
                                     "phone" to phone,
+                                    "dateOfBirth" to dateOfBirth,
+                                    "gender" to gender,
+                                    "address" to address,
+                                    "bloodGroup" to bloodGroup,
+                                    "chronicDiseases" to chronicDiseases,
                                     "createdBy" to (auth.currentUser?.uid ?: ""),
                                     "createdAt" to System.currentTimeMillis()
                                 )
@@ -176,7 +272,17 @@ fun RegisterPatientScreen(
                                     .add(patient)
                                     .addOnSuccessListener {
                                         isLoading = false
-                                        onSaveClick(firstName, lastName, age, gender, phone)
+                                        onSaveClick(
+                                            firstName,
+                                            familyName,
+                                            cin,
+                                            phone,
+                                            dateOfBirth,
+                                            gender,
+                                            address,
+                                            bloodGroup,
+                                            chronicDiseases
+                                        )
                                     }
                                     .addOnFailureListener { e ->
                                         isLoading = false
@@ -188,6 +294,7 @@ fun RegisterPatientScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2D7FF9)
                     ),
@@ -213,6 +320,7 @@ fun RegisterPatientScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF2D7FF9)
             )

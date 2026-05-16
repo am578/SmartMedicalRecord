@@ -190,13 +190,13 @@ onPatientSelected: (Patient?) -> Unit
 
         "register_patient" -> RegisterPatientScreen(
             onBackClick = { onScreenChange("reception_dashboard") },
-            onSaveClick = { firstName, lastName, age, gender, phone ->
+            onSaveClick = { firstName, familyName, cin, phone, dateOfBirth, gender, address, bloodGroup, chronicDiseases ->
                 patients.add(
                     Patient(
                         id = patients.size + 1,
                         firstName = firstName,
-                        lastName = lastName,
-                        age = age.toIntOrNull() ?: 0,
+                        lastName = familyName,
+                        age = 0,
                         gender = gender,
                         phone = phone
                     )
