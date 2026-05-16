@@ -1,4 +1,4 @@
-package com.example.medicalrecordapp
+ package com.example.medicalrecordapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -47,8 +47,9 @@ class MainActivity : ComponentActivity() {
                 val appointmentViewModel = remember { AppointmentViewModel() }
 
                 var currentScreen by remember { mutableStateOf("loading") }
-                var selectedPatient by remember { mutableStateOf<<Patient?>(null) }
+                var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
+                // مؤقتًا: قائمة مرضى محلية، بعدها نقدر نربطها بـ Firestore
                 val patients = remember {
                     mutableStateListOf(
                         Patient(1, "Ahmed", "Benali", 25, "Male", "0550123456"),
@@ -88,15 +89,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppNavigation(
-    currentScreen: String,
-    authViewModel: AuthViewModel,
-    appointmentViewModel: AppointmentViewModel,
-    patients: androidx.compose.runtime.snapshots.SnapshotStateList<<Patient>,
-    selectedPatient: Patient?,
-    onScreenChange: (String) -> Unit,
-    onPatientSelected: (Patient?) -> Unit
+     currentScreen: String,
+authViewModel: AuthViewModel,
+appointmentViewModel: AppointmentViewModel,
+patients: androidx.compose.runtime.snapshots.SnapshotStateList<Patient>,
+selectedPatient: Patient?,
+onScreenChange: (String) -> Unit,
+onPatientSelected: (Patient?) -> Unit
 ) {
     when (currentScreen) {
+
         "loading" -> Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -156,7 +158,20 @@ private fun AppNavigation(
             }
         )
 
+        // صفحة السكرتير بعد التعديل
         "reception_dashboard" -> ReceptionDashboardScreen(
+            onRegisterPatientClick = {
+                onScreenChange("register_patient")
+            },
+            onPatientsClick = {
+                onScreenChange("patients_list")
+            },
+            onAppointmentsClick = {
+                onScreenChange("doctor_appointments")
+            },
+            onRequestsClick = {
+                onScreenChange("doctor_appointments")
+            },
             onLogoutClick = {
                 authViewModel.logoutUser()
                 onScreenChange("login")
@@ -174,7 +189,7 @@ private fun AppNavigation(
         )
 
         "register_patient" -> RegisterPatientScreen(
-            onBackClick = { onScreenChange("doctor_dashboard") },
+            onBackClick = { onScreenChange("reception_dashboard") },
             onSaveClick = { firstName, lastName, age, gender, phone ->
                 patients.add(
                     Patient(
@@ -189,15 +204,14 @@ private fun AppNavigation(
                 onScreenChange("patients_list")
             }
         )
-
         "patients_list" -> PatientsListScreen(
-            patients = patients,
-            onPatientClick = { patient ->
-                onPatientSelected(patient)
-                onScreenChange("patient_details")
-            },
-            onBackClick = { onScreenChange("doctor_dashboard") }
-        )
+        patients = patients,
+        onPatientClick = { patient ->
+            onPatientSelected(patient)
+            onScreenChange("patient_details")
+        },
+        onBackClick = { onScreenChange("reception_dashboard") }
+    )
 
         "patient_details" -> {
             selectedPatient?.let { patient ->
@@ -210,7 +224,7 @@ private fun AppNavigation(
 
         "doctor_appointments" -> DoctorAppointmentsScreen(
             appointments = appointmentViewModel.getAppointments(),
-            onBackClick = { onScreenChange("doctor_dashboard") }
+            onBackClick = { onScreenChange("reception_dashboard") }
         )
 
         "request_appointment" -> RequestAppointmentScreen(
