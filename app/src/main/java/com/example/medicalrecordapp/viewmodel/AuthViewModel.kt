@@ -1,5 +1,8 @@
 package com.example.medicalrecordapp.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.medicalrecordapp.domain.model.User
@@ -15,7 +18,14 @@ class AuthViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // ✅ نحفظ بيانات الأدمن تلقائياً عند تسجيل الدخول
+    // ✅ حساب الأدمن المُدمج (Hardcoded)
+    private val HARDCODED_ADMIN_EMAIL = "admin@smartmedicalrecord.com"
+    private val HARDCODED_ADMIN_PASSWORD = "admin"
+
+    var isHardcodedAdminLoggedIn by mutableStateOf(false)
+        private set
+
+    // نحفظ بيانات المستخدم الحالي (للأدمن المُدمج أو العادي)
     var currentUserEmail: String = ""
         private set
     var currentUserPassword: String = ""
@@ -31,7 +41,16 @@ class AuthViewModel : ViewModel() {
         password: String,
         onResult: (Boolean, String?) -> Unit
     ) {
-        // نحفظ البيانات عشان نرجع الأدمن بعد إنشاء حساب
+        // ✅ التحقق من حساب الأدمن المُدمج أولاً
+        if (email == HARDCODED_ADMIN_EMAIL && password == HARDCODED_ADMIN_PASSWORD) {
+            isHardcodedAdminLoggedIn = true
+            currentUserEmail = email
+            currentUserPassword = password
+            onResult(true, null)
+            return
+        }
+
+        // تسجيل دخول عادي عبر Firebase
         currentUserEmail = email
         currentUserPassword = password
 
@@ -101,7 +120,6 @@ class AuthViewModel : ViewModel() {
         role: UserRole,
         onResult: (Boolean, String?, String?) -> Unit
     ) {
-        // نستخدم البيانات المحفوظة تلقائياً
         val adminEmail = currentUserEmail
         val adminPassword = currentUserPassword
 
@@ -110,6 +128,7 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        // ✅ لو الأدمن مُدمج، ننشئ في Firebase عادي لكن نرجعه بعدها
         auth.createUserWithEmailAndPassword(staffEmail, staffPassword)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -149,6 +168,11 @@ class AuthViewModel : ViewModel() {
     // ====== إعادة تسجيل دخول الأدمن ======
     private fun reLoginAdmin(email: String, password: String, onDone: () -> Unit) {
         auth.signOut()
+        // ✅ لو الأدمن مُدمج، ما نحتاج نسجل دخول Firebase
+        if (isHardcodedAdminLoggedIn) {
+            onDone()
+            return
+        }
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { onDone() }
     }
@@ -190,6 +214,12 @@ class AuthViewModel : ViewModel() {
 
     // ====== جلب صلاحية المستخدم ======
     fun getUserRole(onResult: (String) -> Unit) {
+        // ✅ لو الأدمن المُدمج مسجل دخول، نرجع ADMIN مباشرة
+        if (isHardcodedAdminLoggedIn) {
+            onResult(UserRole.ADMIN.name)
+            return
+        }
+
         val uid = auth.currentUser?.uid
         if (uid == null) {
             onResult(UserRole.PATIENT.name)
@@ -208,6 +238,7 @@ class AuthViewModel : ViewModel() {
 
     // ====== تسجيل الخروج ======
     fun logoutUser() {
+        isHardcodedAdminLoggedIn = false
         auth.signOut()
         currentUserEmail = ""
         currentUserPassword = ""
@@ -215,6 +246,6 @@ class AuthViewModel : ViewModel() {
 
     // ====== هل المستخدم مسجل دخول؟ ======
     fun isUserLoggedIn(): Boolean {
-        return auth.currentUser != null
+        return isHardcodedAdminLoggedIn || auth.currentUser != null
     }
 }
