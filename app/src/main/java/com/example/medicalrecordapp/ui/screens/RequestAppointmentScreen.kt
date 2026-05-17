@@ -1,4 +1,4 @@
- package com.example.medicalrecordapp.ui.screens
+package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -104,7 +104,7 @@ fun RequestAppointmentScreen(
                     AppointmentInputField(
                         value = time,
                         onValueChange = { time = it },
-                        label = "Preferred Time",
+                         label = "Preferred Time",
                     icon = Icons.Default.Schedule
                     )
 
@@ -176,32 +176,35 @@ fun RequestAppointmentScreen(
                                         return@Button
                                     }
 
-                                    fun saveAppointment(patientName: String) {
+                                    fun saveAppointment(
+                                        patientName: String,
+                                        patientCin: String
+                                    ) {
                                         val appointment = hashMapOf(
                                             "patientId" to patientId,
                                             "patientEmail" to patientEmail,
                                             "patientName" to patientName.ifBlank { patientEmail },
+                                            "patientCin" to patientCin,
                                             "doctorName" to doctorName,
                                             "date" to date,
                                             "time" to time,
                                             "symptoms" to symptoms,
                                             "status" to "PENDING",
                                             "paymentStatus" to "UNPAID",
-                                            "createdAt" to System.currentTimeMillis()
+                                             "createdAt" to System.currentTimeMillis()
                                         )
 
                                         db.collection("appointments")
-                                            .
-                                            add(appointment)
-                                        .addOnSuccessListener {
-                                            isLoading = false
-                                            onSubmitClick(
-                                                doctorName,
-                                                date,
-                                                time,
-                                                symptoms
-                                            )
-                                        }
+                                            .add(appointment)
+                                            .addOnSuccessListener {
+                                                isLoading = false
+                                                onSubmitClick(
+                                                    doctorName,
+                                                    date,
+                                                    time,
+                                                    symptoms
+                                                )
+                                            }
                                             .addOnFailureListener { e ->
                                                 isLoading = false
                                                 formError = e.message
@@ -215,13 +218,20 @@ fun RequestAppointmentScreen(
                                         .addOnSuccessListener { userDoc ->
                                             val firstName = userDoc.getString("firstName") ?: ""
                                             val familyName = userDoc.getString("familyName") ?: ""
+                                            val patientCin = userDoc.getString("cin") ?: ""
 
                                             val patientFullName = "$firstName $familyName".trim()
 
-                                            saveAppointment(patientFullName)
+                                            saveAppointment(
+                                                patientName = patientFullName,
+                                                patientCin = patientCin
+                                            )
                                         }
                                         .addOnFailureListener {
-                                            saveAppointment(patientEmail)
+                                            saveAppointment(
+                                                patientName = patientEmail,
+                                                patientCin = ""
+                                            )
                                         }
                                 }
                             }
@@ -272,11 +282,11 @@ fun AppointmentInputField(
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary
-        )
+         modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(12.dp),
+    singleLine = true,
+    colors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary
+    )
     )
 }

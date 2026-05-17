@@ -1,4 +1,4 @@
- package com.example.medicalrecordapp
+package com.example.medicalrecordapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -80,6 +80,11 @@ class MainActivity : ComponentActivity() {
 
                                 val gender = document.getString("gender") ?: ""
                                 val phone = document.getString("phone") ?: ""
+                                val cin = document.getString("cin") ?: ""
+                                val dateOfBirth = document.getString("dateOfBirth") ?: ""
+                                val address = document.getString("address") ?: ""
+                                val bloodGroup = document.getString("bloodGroup") ?: ""
+                                val chronicDiseases = document.getString("chronicDiseases") ?: ""
 
                                 val ageValue = document.get("age")
                                 val age = when (ageValue) {
@@ -96,7 +101,13 @@ class MainActivity : ComponentActivity() {
                                         lastName = familyName,
                                         age = age,
                                         gender = gender,
-                                        phone = phone
+                                        phone = phone,
+                                        cin = cin,
+                                        dateOfBirth = dateOfBirth,
+                                        address = address,
+                                        bloodGroup = bloodGroup,
+                                        chronicDiseases = chronicDiseases,
+                                        documentId = document.id
                                     )
                                 )
                             }
@@ -114,7 +125,9 @@ class MainActivity : ComponentActivity() {
                                 val patientName = document.getString("patientName") ?: ""
                                 val date = document.getString("date") ?: ""
                                 val time = document.getString("time") ?: ""
-                                val status = document.getString("status") ?: "PENDING"
+                                val status = (document.getString("status") ?: "PENDING")
+                                    .trim()
+                                    .uppercase()
 
                                 appointments.add(
                                     Appointment(
@@ -188,27 +201,33 @@ private fun AppNavigation(
         }
 
         "login" -> LoginScreen(
-             authViewModel = authViewModel,
-    onLoginSuccess = {
-        authViewModel.getUserRole { role ->
-            onScreenChange(
-                when (role) {
-                    "DOCTOR" -> "doctor_dashboard"
-                    "ADMIN" -> "admin_dashboard"
-                    "RECEPTIONIST" -> "reception_dashboard"
-                    else -> "patient_dashboard"
+            authViewModel = authViewModel,
+            onLoginSuccess = {
+                authViewModel.getUserRole { role ->
+                    onScreenChange(
+                        when (role) {
+                            "DOCTOR" -> "doctor_dashboard"
+                            "ADMIN" -> "admin_dashboard"
+                            "RECEPTIONIST" -> "reception_dashboard"
+                            else -> "patient_dashboard"
+                        }
+                    )
                 }
-            )
-        }
-    },
-    onGoToRegister = { onScreenChange("register") }
+            },
+            onGoToRegister = {
+                onScreenChange("register")
+            }
         )
 
         "register" -> RegisterScreen(
-        authViewModel = authViewModel,
-        onRegisterSuccess = { onScreenChange("login") },
-        onBackToLogin = { onScreenChange("login") }
-    )
+            authViewModel = authViewModel,
+            onRegisterSuccess = {
+                onScreenChange("login")
+            },
+            onBackToLogin = {
+                onScreenChange("login")
+            }
+        )
 
         "doctor_dashboard" -> DoctorDashboardScreen(
             onPatientsClick = {
@@ -226,9 +245,15 @@ private fun AppNavigation(
         )
 
         "patient_dashboard" -> PatientDashboardScreen(
-            onRequestAppointmentClick = { onScreenChange("request_appointment") },
-            onMyAppointmentsClick = { onScreenChange("patient_appointments") },
-            onMyRecordClick = { onScreenChange("my_medical_record") },
+            onRequestAppointmentClick = {
+                onScreenChange("request_appointment")
+            },
+            onMyAppointmentsClick = {
+                onScreenChange("patient_appointments")
+            },
+            onMyRecordClick = {
+                onScreenChange("my_medical_record")
+            },
             onLogoutClick = {
                 authViewModel.logoutUser()
                 onScreenChange("login")
@@ -236,8 +261,12 @@ private fun AppNavigation(
         )
 
         "admin_dashboard" -> AdminDashboardScreen(
-            onManageUsersClick = { onScreenChange("staff_list") },
-            onCreateAccountClick = { onScreenChange("admin_create_account") },
+            onManageUsersClick = {
+                onScreenChange("staff_list")
+            },
+            onCreateAccountClick = {
+                onScreenChange("admin_create_account")
+            },
             onStatisticsClick = { },
             onLogoutClick = {
                 authViewModel.logoutUser()
@@ -270,16 +299,22 @@ private fun AppNavigation(
 
         "admin_create_account" -> AdminCreateAccountScreen(
             authViewModel = authViewModel,
-            onBackClick = { onScreenChange("admin_dashboard") }
+            onBackClick = {
+                onScreenChange("admin_dashboard")
+            }
         )
 
         "staff_list" -> StaffListScreen(
             authViewModel = authViewModel,
-            onBackClick = { onScreenChange("admin_dashboard") }
+            onBackClick = {
+                onScreenChange("admin_dashboard")
+            }
         )
 
         "register_patient" -> RegisterPatientScreen(
-            onBackClick = { onScreenChange("reception_dashboard") },
+            onBackClick = {
+                onScreenChange("reception_dashboard")
+            },
             onSaveClick = { _, _, _, _, _, _, _, _, _ ->
                 onPreviousScreenChange("reception_dashboard")
                 onScreenChange("patients_list")
@@ -299,17 +334,21 @@ private fun AppNavigation(
         )
 
         "patient_details" -> {
-            selectedPatient?.
-            let { patient ->
+            selectedPatient?.let { patient ->
                 PatientDetailsScreen(
                     patient = patient,
-                    onBackClick = { onScreenChange("patients_list") }
+                    onBackClick = {
+                        onScreenChange("patients_list")
+                    }
                 )
             }
         }
 
         "doctor_appointments" -> DoctorAppointmentsScreen(
-            appointments = appointments.filter { it.status != "PENDING" },
+            appointments = appointments.filter {
+                val status = it.status.trim().uppercase()
+                status != "PENDING" && status != "WAITING" && status.isNotBlank()
+            },
             showActions = false,
             onBackClick = {
                 onScreenChange(previousScreen.ifBlank { "reception_dashboard" })
@@ -317,7 +356,10 @@ private fun AppNavigation(
         )
 
         "appointment_requests" -> DoctorAppointmentsScreen(
-            appointments = appointments.filter { it.status == "PENDING" },
+            appointments = appointments.filter {
+                val status = it.status.trim().uppercase()
+                status == "PENDING" || status == "WAITING" || status.isBlank()
+            },
             showActions = true,
             onBackClick = {
                 onScreenChange("reception_dashboard")
@@ -325,7 +367,9 @@ private fun AppNavigation(
         )
 
         "request_appointment" -> RequestAppointmentScreen(
-            onBackClick = { onScreenChange("patient_dashboard") },
+            onBackClick = {
+                onScreenChange("patient_dashboard")
+            },
             onSubmitClick = { _, _, _, _ ->
                 onScreenChange("patient_appointments")
             }
@@ -333,11 +377,15 @@ private fun AppNavigation(
 
         "patient_appointments" -> PatientAppointmentsScreen(
             appointments = appointments,
-            onBackClick = { onScreenChange("patient_dashboard") }
+            onBackClick = {
+                onScreenChange("patient_dashboard")
+            }
         )
 
         "my_medical_record" -> MyMedicalRecordScreen(
-            onBackClick = { onScreenChange("patient_dashboard") }
+            onBackClick = {
+                onScreenChange("patient_dashboard")
+            }
         )
     }
 }
