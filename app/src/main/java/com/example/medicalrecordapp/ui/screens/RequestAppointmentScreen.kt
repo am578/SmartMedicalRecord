@@ -40,10 +40,18 @@ fun RequestAppointmentScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Request Appointment", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "Request Appointment",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -55,6 +63,7 @@ fun RequestAppointmentScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,29 +105,30 @@ fun RequestAppointmentScreen(
                         value = time,
                         onValueChange = { time = it },
                         label = "Preferred Time",
-                        icon = Icons.Default.Schedule
+                    icon = Icons.Default.Schedule
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-                     OutlinedTextField(
-                    value = symptoms,
-                    onValueChange = { symptoms = it },
-                    label = { Text("Symptoms / Notes") },
-                    placeholder = { Text("How do you feel?") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Description,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+
+                    OutlinedTextField(
+                        value = symptoms,
+                        onValueChange = { symptoms = it },
+                        label = { Text("Symptoms / Notes") },
+                        placeholder = { Text("How do you feel?") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Description,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -136,10 +146,22 @@ fun RequestAppointmentScreen(
                     Button(
                         onClick = {
                             when {
-                                doctorName.isBlank() -> formError = "Please enter doctor name"
-                                date.isBlank() -> formError = "Please enter preferred date"
-                                time.isBlank() -> formError = "Please enter preferred time"
-                                symptoms.isBlank() -> formError = "Please enter symptoms or notes"
+                                doctorName.isBlank() -> {
+                                    formError = "Please enter doctor name"
+                                }
+
+                                date.isBlank() -> {
+                                    formError = "Please enter preferred date"
+                                }
+
+                                time.isBlank() -> {
+                                    formError = "Please enter preferred time"
+                                }
+
+                                symptoms.isBlank() -> {
+                                    formError = "Please enter symptoms or notes"
+                                }
+
                                 else -> {
                                     formError = ""
                                     isLoading = true
@@ -148,28 +170,58 @@ fun RequestAppointmentScreen(
                                     val patientId = currentUser?.uid ?: ""
                                     val patientEmail = currentUser?.email ?: ""
 
-                                    val appointment = hashMapOf(
-                                        "patientId" to patientId,
-                                        "patientEmail" to patientEmail,
-                                        "patientName" to patientEmail,
-                                        "doctorName" to doctorName,
-                                        "date" to date,
-                                        "time" to time,
-                                        "symptoms" to symptoms,
-                                        "status" to "PENDING",
-                                        "paymentStatus" to "UNPAID",
-                                        "createdAt" to System.currentTimeMillis()
-                                    )
+                                    if (patientId.isBlank()) {
+                                        isLoading = false
+                                        formError = "User not logged in"
+                                        return@Button
+                                    }
 
-                                    db.collection("appointments")
-                                        .add(appointment)
+                                    fun saveAppointment(patientName: String) {
+                                        val appointment = hashMapOf(
+                                            "patientId" to patientId,
+                                            "patientEmail" to patientEmail,
+                                            "patientName" to patientName.ifBlank { patientEmail },
+                                            "doctorName" to doctorName,
+                                            "date" to date,
+                                            "time" to time,
+                                            "symptoms" to symptoms,
+                                            "status" to "PENDING",
+                                            "paymentStatus" to "UNPAID",
+                                            "createdAt" to System.currentTimeMillis()
+                                        )
+
+                                        db.collection("appointments")
+                                            .
+                                            add(appointment)
                                         .addOnSuccessListener {
                                             isLoading = false
-                                            onSubmitClick(doctorName, date, time, symptoms)
+                                            onSubmitClick(
+                                                doctorName,
+                                                date,
+                                                time,
+                                                symptoms
+                                            )
                                         }
-                                        .addOnFailureListener { e ->
-                                            isLoading = false
-                                            formError = e.message ?: "Failed to submit appointment request"
+                                            .addOnFailureListener { e ->
+                                                isLoading = false
+                                                formError = e.message
+                                                    ?: "Failed to submit appointment request"
+                                            }
+                                    }
+
+                                    db.collection("users")
+                                        .document(patientId)
+                                        .get()
+                                        .addOnSuccessListener { userDoc ->
+                                            val firstName = userDoc.getString("firstName") ?: ""
+                                            val familyName = userDoc.getString("familyName") ?: ""
+
+                                            val patientFullName = "$firstName $familyName".trim()
+
+                                            saveAppointment(patientFullName)
+                                        }
+                                        .addOnFailureListener {
+                                            saveAppointment(patientEmail)
                                         }
                                 }
                             }
@@ -179,20 +231,23 @@ fun RequestAppointmentScreen(
                             .height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                             containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    enabled = !isLoading
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        enabled = !isLoading
                     ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("Submit Request", fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Submit Request",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-                }
                 }
             }
         }
@@ -212,7 +267,7 @@ fun AppointmentInputField(
         label = { Text(label) },
         leadingIcon = {
             Icon(
-                icon,
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
