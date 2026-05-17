@@ -1,4 +1,4 @@
-package com.example.medicalrecordapp.ui.screens
+ package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun DoctorAppointmentsScreen(
     appointments: List<Appointment>,
+    showActions: Boolean = false,
     onBackClick: () -> Unit = {}
 ) {
     val db = FirebaseFirestore.getInstance()
@@ -60,6 +61,7 @@ fun DoctorAppointmentsScreen(
 
                     AppointmentManagementCard(
                         appointment = appointment,
+                        showActions = showActions,
                         onAcceptClick = {
                             if (appointment.documentId.isNotBlank()) {
                                 db.collection("appointments")
@@ -99,6 +101,7 @@ fun DoctorAppointmentsScreen(
 @Composable
 fun AppointmentManagementCard(
     appointment: Appointment,
+    showActions: Boolean,
     onAcceptClick: () -> Unit,
     onRejectClick: () -> Unit,
     onSuggestClick: (String, String) -> Unit
@@ -110,10 +113,11 @@ fun AppointmentManagementCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-             containerColor = Color(0xFFE3F2FD)
+            .
+             padding(bottom = 12.dp),
+    shape = RoundedCornerShape(24.dp),
+    colors = CardDefaults.cardColors(
+        containerColor = Color(0xFFE3F2FD)
     )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -130,7 +134,7 @@ fun AppointmentManagementCard(
             Text(text = "Time: ${appointment.time}")
             Text(text = "Status: ${appointment.status}")
 
-            if (appointment.status == "PENDING") {
+            if (showActions && appointment.status == "PENDING") {
 
                 Spacer(modifier = Modifier.height(14.dp))
 

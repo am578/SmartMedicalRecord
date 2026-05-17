@@ -1,4 +1,4 @@
-package com.example.medicalrecordapp
+ package com.example.medicalrecordapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -260,7 +260,7 @@ private fun AppNavigation(
             },
             onRequestsClick = {
                 onPreviousScreenChange("reception_dashboard")
-                onScreenChange("doctor_appointments")
+                onScreenChange("appointment_requests")
             },
             onLogoutClick = {
                 authViewModel.logoutUser()
@@ -300,7 +300,7 @@ private fun AppNavigation(
 
         "patient_details" -> {
             selectedPatient?.
-             let { patient ->
+            let { patient ->
                 PatientDetailsScreen(
                     patient = patient,
                     onBackClick = { onScreenChange("patients_list") }
@@ -309,9 +309,18 @@ private fun AppNavigation(
         }
 
         "doctor_appointments" -> DoctorAppointmentsScreen(
-            appointments = appointments,
+            appointments = appointments.filter { it.status != "PENDING" },
+            showActions = false,
             onBackClick = {
                 onScreenChange(previousScreen.ifBlank { "reception_dashboard" })
+            }
+        )
+
+        "appointment_requests" -> DoctorAppointmentsScreen(
+            appointments = appointments.filter { it.status == "PENDING" },
+            showActions = true,
+            onBackClick = {
+                onScreenChange("reception_dashboard")
             }
         )
 
