@@ -1,4 +1,4 @@
- package com.example.medicalrecordapp
+package com.example.medicalrecordapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -114,7 +114,7 @@ class MainActivity : ComponentActivity() {
                                 val patientName = document.getString("patientName") ?: ""
                                 val date = document.getString("date") ?: ""
                                 val time = document.getString("time") ?: ""
-                                val status = document.getString("status") ?: "Pending"
+                                val status = document.getString("status") ?: "PENDING"
 
                                 appointments.add(
                                     Appointment(
@@ -122,7 +122,8 @@ class MainActivity : ComponentActivity() {
                                         patientName = patientName,
                                         date = date,
                                         time = time,
-                                        status = status
+                                        status = status,
+                                        documentId = document.id
                                     )
                                 )
                             }
@@ -187,27 +188,27 @@ private fun AppNavigation(
         }
 
         "login" -> LoginScreen(
-            authViewModel = authViewModel,
-            onLoginSuccess = {
-                authViewModel.getUserRole { role ->
-                onScreenChange(
-                    when (role) {
-                        "DOCTOR" -> "doctor_dashboard"
-                        "ADMIN" -> "admin_dashboard"
-                        "RECEPTIONIST" -> "reception_dashboard"
-                        else -> "patient_dashboard"
-                    }
-                )
-            }
-            },
-            onGoToRegister = { onScreenChange("register") }
+             authViewModel = authViewModel,
+    onLoginSuccess = {
+        authViewModel.getUserRole { role ->
+            onScreenChange(
+                when (role) {
+                    "DOCTOR" -> "doctor_dashboard"
+                    "ADMIN" -> "admin_dashboard"
+                    "RECEPTIONIST" -> "reception_dashboard"
+                    else -> "patient_dashboard"
+                }
+            )
+        }
+    },
+    onGoToRegister = { onScreenChange("register") }
         )
 
         "register" -> RegisterScreen(
-            authViewModel = authViewModel,
-            onRegisterSuccess = { onScreenChange("login") },
-            onBackToLogin = { onScreenChange("login") }
-        )
+        authViewModel = authViewModel,
+        onRegisterSuccess = { onScreenChange("login") },
+        onBackToLogin = { onScreenChange("login") }
+    )
 
         "doctor_dashboard" -> DoctorDashboardScreen(
             onPatientsClick = {
@@ -298,10 +299,11 @@ private fun AppNavigation(
         )
 
         "patient_details" -> {
-            selectedPatient?.let { patient ->
+            selectedPatient?.
+             let { patient ->
                 PatientDetailsScreen(
                     patient = patient,
-                onBackClick = { onScreenChange("patients_list") }
+                    onBackClick = { onScreenChange("patients_list") }
                 )
             }
         }

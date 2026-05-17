@@ -5,5 +5,6 @@ data class Appointment(
     val patientName: String,
     val date: String,
     val time: String,
-    val status: String
+    val status: String,
+    val documentId: String = ""
 )

@@ -6,18 +6,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.domain.model.Appointment
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun DoctorAppointmentsScreen(
     appointments: List<Appointment>,
     onBackClick: () -> Unit = {}
 ) {
+    val db = FirebaseFirestore.getInstance()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,40 +38,168 @@ fun DoctorAppointmentsScreen(
 
         Button(
             onClick = onBackClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp)
         ) {
             Text("Back")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(appointments) { appointment ->
+        if (appointments.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text("No appointments found")
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(appointments) { appointment ->
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFE3F2FD)
+                    AppointmentManagementCard(
+                        appointment = appointment,
+                        onAcceptClick = {
+                            if (appointment.documentId.isNotBlank()) {
+                                db.collection("appointments")
+                                    .document(appointment.documentId)
+                                    .update("status", "ACCEPTED")
+                            }
+                        },
+                        onRejectClick = {
+                            if (appointment.documentId.isNotBlank()) {
+                                db.collection("appointments")
+                                    .document(appointment.documentId)
+                                    .update("status", "REJECTED")
+                            }
+                        },
+                        onSuggestClick = { suggestedDate, suggestedTime ->
+                            if (appointment.documentId.isNotBlank()) {
+                                db.collection("appointments")
+                                    .document(appointment.documentId)
+                                    .update(
+                                        mapOf(
+                                            "status" to "SUGGESTED",
+                                            "date" to suggestedDate,
+                                            "time" to suggestedTime,
+                                            "suggestedDate" to suggestedDate,
+                                            "suggestedTime" to suggestedTime
+                                        )
+                                    )
+                            }
+                        }
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppointmentManagementCard(
+    appointment: Appointment,
+    onAcceptClick: () -> Unit,
+    onRejectClick: () -> Unit,
+    onSuggestClick: (String, String) -> Unit
+) {
+    var showSuggestFields by remember { mutableStateOf(false) }
+    var suggestedDate by remember { mutableStateOf("") }
+    var suggestedTime by remember { mutableStateOf("") }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+             containerColor = Color(0xFFE3F2FD)
+    )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Text(
+                text = appointment.patientName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(text = "Date: ${appointment.date}")
+            Text(text = "Time: ${appointment.time}")
+            Text(text = "Status: ${appointment.status}")
+
+            if (appointment.status == "PENDING") {
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Button(
+                        onClick = onAcceptClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Accept")
+                    }
 
-                        Text(
-                            text = appointment.patientName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                    OutlinedButton(
+                        onClick = onRejectClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Reject")
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(text = "Date: ${appointment.date}")
-                        Text(text = "Time: ${appointment.time}")
-                        Text(text = "Status: ${appointment.status}")
+                OutlinedButton(
+                    onClick = { showSuggestFields = !showSuggestFields },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Suggest another time")
+                }
+
+                if (showSuggestFields) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = suggestedDate,
+                        onValueChange = { suggestedDate = it },
+                        label = { Text("Suggested Date") },
+                        placeholder = { Text("YYYY-MM-DD") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = suggestedTime,
+                        onValueChange = { suggestedTime = it },
+                        label = { Text("Suggested Time") },
+                        placeholder = { Text("10:00") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (suggestedDate.isNotBlank() && suggestedTime.isNotBlank()) {
+                                onSuggestClick(suggestedDate, suggestedTime)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Send Suggestion")
                     }
                 }
             }

@@ -1,6 +1,5 @@
-package com.example.medicalrecordapp.ui.screens
+ package com.example.medicalrecordapp.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +29,13 @@ fun RequestAppointmentScreen(
     var doctorName by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var symptoms by remember { mutableStateOf("") } // خانة الأعراض لي زدناها
+    var symptoms by remember { mutableStateOf("") }
+
+    var formError by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     Scaffold(
         topBar = {
@@ -53,7 +60,7 @@ fun RequestAppointmentScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(20.dp)
-                .verticalScroll(rememberScrollState()), // يسمح بالتمرير إذا كانت الخانات بزاف
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -67,7 +74,6 @@ fun RequestAppointmentScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
 
-                    // خانة اسم الطبيب
                     AppointmentInputField(
                         value = doctorName,
                         onValueChange = { doctorName = it },
@@ -77,7 +83,6 @@ fun RequestAppointmentScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // خانة التاريخ
                     AppointmentInputField(
                         value = date,
                         onValueChange = { date = it },
@@ -87,7 +92,6 @@ fun RequestAppointmentScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // خانة الوقت
                     AppointmentInputField(
                         value = time,
                         onValueChange = { time = it },
@@ -96,40 +100,105 @@ fun RequestAppointmentScreen(
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    // خانة الأعراض (كبيرة شوية)
-                    OutlinedTextField(
-                        value = symptoms,
-                        onValueChange = { symptoms = it },
-                        label = { Text("Symptoms / Notes") },
-                        placeholder = { Text("How do you feel?") },
-                        modifier = Modifier.fillMaxWidth().height(120.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        leadingIcon = { Icon(Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                     OutlinedTextField(
+                    value = symptoms,
+                    onValueChange = { symptoms = it },
+                    label = { Text("Symptoms / Notes") },
+                    placeholder = { Text("How do you feel?") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Description,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
                         )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (formError.isNotEmpty()) {
+                        Text(
+                            text = formError,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
-                        onClick = { onSubmitClick(doctorName, date, time, symptoms) },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        onClick = {
+                            when {
+                                doctorName.isBlank() -> formError = "Please enter doctor name"
+                                date.isBlank() -> formError = "Please enter preferred date"
+                                time.isBlank() -> formError = "Please enter preferred time"
+                                symptoms.isBlank() -> formError = "Please enter symptoms or notes"
+                                else -> {
+                                    formError = ""
+                                    isLoading = true
+
+                                    val currentUser = auth.currentUser
+                                    val patientId = currentUser?.uid ?: ""
+                                    val patientEmail = currentUser?.email ?: ""
+
+                                    val appointment = hashMapOf(
+                                        "patientId" to patientId,
+                                        "patientEmail" to patientEmail,
+                                        "patientName" to patientEmail,
+                                        "doctorName" to doctorName,
+                                        "date" to date,
+                                        "time" to time,
+                                        "symptoms" to symptoms,
+                                        "status" to "PENDING",
+                                        "paymentStatus" to "UNPAID",
+                                        "createdAt" to System.currentTimeMillis()
+                                    )
+
+                                    db.collection("appointments")
+                                        .add(appointment)
+                                        .addOnSuccessListener {
+                                            isLoading = false
+                                            onSubmitClick(doctorName, date, time, symptoms)
+                                        }
+                                        .addOnFailureListener { e ->
+                                            isLoading = false
+                                            formError = e.message ?: "Failed to submit appointment request"
+                                        }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                             containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    enabled = !isLoading
                     ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
                         Text("Submit Request", fontWeight = FontWeight.Bold)
                     }
+                }
                 }
             }
         }
     }
 }
 
-// دالة مساعدة لتنظيم الخانات (Helper Composable)
 @Composable
 fun AppointmentInputField(
     value: String,
@@ -141,7 +210,13 @@ fun AppointmentInputField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        leadingIcon = {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
