@@ -3,104 +3,72 @@ package com.example.medicalrecordapp.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
-import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
-import com.example.medicalrecordapp.utils.LocalLanguage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDashboardScreen(
-    onRequestAppointmentClick: () -> Unit = {},
-    onMyAppointmentsClick: () -> Unit = {},
-    onMyRecordClick: () -> Unit = {},
+    onRequestAppointmentClick: () -> Unit,
+    onMyAppointmentsClick: () -> Unit,
+    onMyRecordClick: () -> Unit,
     onLanguageChange: (String) -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    onLogoutClick: () -> Unit
 ) {
-    val currentLang = LocalLanguage.current.value
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DashboardBackground)
+            .verticalScroll(rememberScrollState())
+            .padding(22.dp)
+    ) {
+        DashboardHeader(
+            title = stringResource(id = R.string.my_health),
+            subtitle = "Welcome Patient",
+            onLanguageChange = onLanguageChange
+        )
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.my_health), fontWeight = FontWeight.Bold) },
-                actions = {
-                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
-                    Spacer(Modifier.width(8.dp))
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            DashboardCard(
-                stringResource(R.string.request_appointment),
-                stringResource(R.string.book_appointment_desc),
-                Icons.Default.CalendarToday,
-                Color(0xFF2D7FF9),
-                onRequestAppointmentClick
-            )
-            DashboardCard(
-                stringResource(R.string.my_appointments),
-                stringResource(R.string.view_appointments_desc),
-                Icons.Default.Schedule,
-                Color(0xFF34A853),
-                onMyAppointmentsClick
-            )
-            DashboardCard(
-                stringResource(R.string.my_medical_record),
-                stringResource(R.string.access_history_desc),
-                Icons.Default.MedicalInformation,
-                Color(0xFF9C27B0),
-                onMyRecordClick
-            )
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
-            ) {
-                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.logout))
-            }
-        }
-    }
-}
+        MainDashboardCard(
+            icon = "➕",
+            title = stringResource(id = R.string.request_appointment),
+            description = stringResource(id = R.string.book_appointment_desc),
+            buttonText = stringResource(id = R.string.request_appointment),
+            onClick = onRequestAppointmentClick,
+            iconColor = PrimaryBlue,
+            buttonColor = PrimaryBlue
+        )
 
-@Composable
-private fun DashboardCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
-                }
-            }
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-            }
-        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MainDashboardCard(
+            icon = "📅",
+            title = stringResource(id = R.string.my_appointments),
+            description = stringResource(id = R.string.view_appointments_desc),
+            buttonText = stringResource(id = R.string.my_appointments),
+            onClick = onMyAppointmentsClick,
+            iconColor = PrimaryGreen,
+            buttonColor = PrimaryBlue
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MainDashboardCard(
+            icon = "↺",
+            title = stringResource(id = R.string.my_medical_record),
+            description = stringResource(id = R.string.access_history_desc),
+            buttonText = stringResource(id = R.string.my_medical_record),
+            onClick = onMyRecordClick,
+            iconColor = PrimaryBlue,
+            buttonColor = PrimaryBlue
+        )
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+        LogoutButton(onLogoutClick = onLogoutClick)
     }
 }

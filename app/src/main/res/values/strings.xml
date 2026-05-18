@@ -86,11 +86,26 @@
     <string name="manage_requests_desc">Manage pending requests</string>
 
     <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="welcome_admin">Welcome back, Admin</string>
     <string name="staff_list">Staff List</string>
     <string name="staff_list_desc">View all doctors and receptionists</string>
     <string name="create_account_desc">Add a new doctor or receptionist</string>
     <string name="statistics">Statistics</string>
     <string name="statistics_desc">View system activity and reports</string>
+
+    <string name="system_overview">System Overview</string>
+    <string name="system_overview_desc">Manage users, monitor activity, and organize the healthcare system.</string>
+    <string name="overview">Overview</string>
+    <string name="users">Users</string>
+    <string name="reports">Reports</string>
+    <string name="users_management">Users Management</string>
+    <string name="users_management_desc">Add, review, and organize system users efficiently.</string>
+    <string name="view_staff_list">View Staff List</string>
+    <string name="create_account_desc_admin">Create Doctor or Receptionist accounts.</string>
+    <string name="create_staff_btn">Create Doctor / Receptionist</string>
+    <string name="system_statistics">System Statistics</string>
+    <string name="system_statistics_desc">View activity indicators and general platform statistics.</string>
+    <string name="view_statistics">View Statistics</string>
 
     <string name="create_staff_account">Create Staff Account</string>
     <string name="account_role">Account Role</string>

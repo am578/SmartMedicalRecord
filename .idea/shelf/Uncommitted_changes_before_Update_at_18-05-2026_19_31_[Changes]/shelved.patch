@@ -1,0 +1,309 @@
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/ReceptionDashboardScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+> package com.example.medicalrecordapp.ui.screens\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.rememberScrollState\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.foundation.verticalScroll\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.ButtonDefaults\r\nimport androidx.compose.material3.Card\r\nimport androidx.compose.material3.CardDefaults\r\nimport androidx.compose.material3.MaterialTheme\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\n\r\n@Composable\r\nfun ReceptionDashboardScreen(\r\n    onRegisterPatientClick: () -> Unit,\r\n    onPatientsClick: () -> Unit,\r\n    onAppointmentsClick: () -> Unit,\r\n    onRequestsClick: () -> Unit,\r\n    onLogoutClick: () -> Unit\r\n) {\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .background(Color(0xFFEFF7FF))\r\n            .verticalScroll(rememberScrollState())\r\n            .padding(20.dp)\r\n    ) {\r\n        Text(\r\n            text = \"Reception Dashboard\",\r\n            style = MaterialTheme.typography.headlineMedium,\r\n            fontWeight = FontWeight.Bold\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(8.dp))\r\n\r\n        Text(\r\n            text = \"Welcome Receptionist\",\r\n            color = Color.Gray\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(24.dp))\r\n\r\n        ReceptionCard(\r\n            title = \"Register Patient\",\r\n            description = \"Add a new patient to the system\",\r\n            buttonText = \"Register Patient\",\r\n            onClick = onRegisterPatientClick\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(16.dp))\r\n\r\n        ReceptionCard(\r\n            title = \"Patients List\",\r\n            description = \"View registered patients\",\r\n            buttonText = \"View Patients\",\r\n            onClick = onPatientsClick\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(16.dp))\r\n\r\n        ReceptionCard(\r\n            title = \"Appointments\",\r\n            description = \"Manage patient appointments\",\r\n            buttonText = \"Manage Appointments\",\r\n            onClick = onAppointmentsClick\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(16.dp))\r\n\r\n        ReceptionCard(\r\n            title = \"Appointment Requests\",\r\n            description = \"Accept, reject, or suggest another time\",\r\n            buttonText = \"View Requests\",\r\n            onClick = onRequestsClick\r\n        )\r\n\r\n        Spacer(modifier = Modifier.height(24.dp))\r\n\r\n        Button(\r\n            onClick = onLogoutClick,\r\n            modifier = Modifier.fillMaxWidth(),\r\n            shape = RoundedCornerShape(14.dp),\r\n            colors = ButtonDefaults.buttonColors(\r\n                containerColor = Color(0xFF2D7FF9)\r\n            )\r\n        ) {\r\n            Text(\"Logout\")\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun ReceptionCard(\r\n    title: String,\r\n    description: String,\r\n    buttonText: String,\r\n    onClick: () -> Unit\r\n) {\r\n    Card(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .clickable { onClick() },\r\n        shape = RoundedCornerShape(28.dp),\r\n        colors = CardDefaults.cardColors(\r\n            containerColor = Color(0xFFE3F2FD)\r\n        ),\r\n        elevation = CardDefaults.cardElevation(6.dp)\r\n    ) {\r\n        Column(modifier = Modifier.padding(20.dp)) {\r\n            Text(\r\n                text = title,\r\n                style = MaterialTheme.typography.titleLarge,\r\n                fontWeight = FontWeight.Bold\r\n            )\r\n\r\n            Spacer(modifier = Modifier.height(8.dp))\r\n\r\n            Text(\r\n                text = description,\r\n                color = Color.Gray\r\n            )\r\n            Spacer(modifier = Modifier.height(16.dp))\r\n\r\n            Button(\r\n                onClick = onClick,\r\n                modifier = Modifier.fillMaxWidth(),\r\n                shape = RoundedCornerShape(14.dp),\r\n                colors = ButtonDefaults.buttonColors(\r\n                    containerColor = Color(0xFF2D7FF9)\r\n                )\r\n            ) {\r\n                Text(buttonText)\r\n            }\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/ReceptionDashboardScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/ReceptionDashboardScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/ReceptionDashboardScreen.kt	(revision 2fabb079c7e47c31be33065c0862eb15047a6fef)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/ReceptionDashboardScreen.kt	(date 1779120073245)
+@@ -1,149 +1,149 @@
+- package com.example.medicalrecordapp.ui.screens
+-
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.clickable
+-import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.Spacer
+-import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.layout.height
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.shape.RoundedCornerShape
+-import androidx.compose.foundation.verticalScroll
+-import androidx.compose.material3.Button
+-import androidx.compose.material3.ButtonDefaults
+-import androidx.compose.material3.Card
+-import androidx.compose.material3.CardDefaults
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.unit.dp
+-
+-@Composable
+-fun ReceptionDashboardScreen(
+-    onRegisterPatientClick: () -> Unit,
+-    onPatientsClick: () -> Unit,
+-    onAppointmentsClick: () -> Unit,
+-    onRequestsClick: () -> Unit,
+-    onLogoutClick: () -> Unit
+-) {
+-    Column(
+-        modifier = Modifier
+-            .fillMaxSize()
+-            .background(Color(0xFFEFF7FF))
+-            .verticalScroll(rememberScrollState())
+-            .padding(20.dp)
+-    ) {
+-        Text(
+-            text = "Reception Dashboard",
+-            style = MaterialTheme.typography.headlineMedium,
+-            fontWeight = FontWeight.Bold
+-        )
+-
+-        Spacer(modifier = Modifier.height(8.dp))
+-
+-        Text(
+-            text = "Welcome Receptionist",
+-            color = Color.Gray
+-        )
+-
+-        Spacer(modifier = Modifier.height(24.dp))
+-
+-        ReceptionCard(
+-            title = "Register Patient",
+-            description = "Add a new patient to the system",
+-            buttonText = "Register Patient",
+-            onClick = onRegisterPatientClick
+-        )
+-
+-        Spacer(modifier = Modifier.height(16.dp))
+-
+-        ReceptionCard(
+-            title = "Patients List",
+-            description = "View registered patients",
+-            buttonText = "View Patients",
+-            onClick = onPatientsClick
+-        )
+-
+-        Spacer(modifier = Modifier.height(16.dp))
+-
+-        ReceptionCard(
+-            title = "Appointments",
+-            description = "Manage patient appointments",
+-            buttonText = "Manage Appointments",
+-            onClick = onAppointmentsClick
+-        )
+-
+-        Spacer(modifier = Modifier.height(16.dp))
+-
+-        ReceptionCard(
+-            title = "Appointment Requests",
+-            description = "Accept, reject, or suggest another time",
+-            buttonText = "View Requests",
+-            onClick = onRequestsClick
+-        )
+-
+-        Spacer(modifier = Modifier.height(24.dp))
+-
+-        Button(
+-            onClick = onLogoutClick,
+-            modifier = Modifier.fillMaxWidth(),
+-            shape = RoundedCornerShape(14.dp),
+-            colors = ButtonDefaults.buttonColors(
+-                containerColor = Color(0xFF2D7FF9)
+-            )
+-        ) {
+-            Text("Logout")
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun ReceptionCard(
+-    title: String,
+-    description: String,
+-    buttonText: String,
+-    onClick: () -> Unit
+-) {
+-    Card(
+-        modifier = Modifier
+-            .fillMaxWidth()
+-            .clickable { onClick() },
+-        shape = RoundedCornerShape(28.dp),
+-        colors = CardDefaults.cardColors(
+-            containerColor = Color(0xFFE3F2FD)
+-        ),
+-        elevation = CardDefaults.cardElevation(6.dp)
+-    ) {
+-        Column(modifier = Modifier.padding(20.dp)) {
+-            Text(
+-                text = title,
+-                style = MaterialTheme.typography.titleLarge,
+-                fontWeight = FontWeight.Bold
+-            )
+-
+-            Spacer(modifier = Modifier.height(8.dp))
+-
+-            Text(
+-                text = description,
+-                color = Color.Gray
+-            )
+-            Spacer(modifier = Modifier.height(16.dp))
+-
+-            Button(
+-                onClick = onClick,
+-                modifier = Modifier.fillMaxWidth(),
+-                shape = RoundedCornerShape(14.dp),
+-                colors = ButtonDefaults.buttonColors(
+-                    containerColor = Color(0xFF2D7FF9)
+-                )
+-            ) {
+-                Text(buttonText)
+-            }
+-        }
+-    }
+-}
++// package com.example.medicalrecordapp.ui.screens
++//
++//import androidx.compose.foundation.background
++//import androidx.compose.foundation.clickable
++//import androidx.compose.foundation.layout.Column
++//import androidx.compose.foundation.layout.Spacer
++//import androidx.compose.foundation.layout.fillMaxSize
++//import androidx.compose.foundation.layout.fillMaxWidth
++//import androidx.compose.foundation.layout.height
++//import androidx.compose.foundation.layout.padding
++//import androidx.compose.foundation.rememberScrollState
++//import androidx.compose.foundation.shape.RoundedCornerShape
++//import androidx.compose.foundation.verticalScroll
++//import androidx.compose.material3.Button
++//import androidx.compose.material3.ButtonDefaults
++//import androidx.compose.material3.Card
++//import androidx.compose.material3.CardDefaults
++//import androidx.compose.material3.MaterialTheme
++//import androidx.compose.material3.Text
++//import androidx.compose.runtime.Composable
++//import androidx.compose.ui.Modifier
++//import androidx.compose.ui.graphics.Color
++//import androidx.compose.ui.text.font.FontWeight
++//import androidx.compose.ui.unit.dp
++//
++//@Composable
++//fun ReceptionDashboardScreen(
++//    onRegisterPatientClick: () -> Unit,
++//    onPatientsClick: () -> Unit,
++//    onAppointmentsClick: () -> Unit,
++//    onRequestsClick: () -> Unit,
++//    onLogoutClick: () -> Unit
++//) {
++//    Column(
++//        modifier = Modifier
++//            .fillMaxSize()
++//            .background(Color(0xFFEFF7FF))
++//            .verticalScroll(rememberScrollState())
++//            .padding(20.dp)
++//    ) {
++//        Text(
++//            text = "Reception Dashboard",
++//            style = MaterialTheme.typography.headlineMedium,
++//            fontWeight = FontWeight.Bold
++//        )
++//
++//        Spacer(modifier = Modifier.height(8.dp))
++//
++//        Text(
++//            text = "Welcome Receptionist",
++//            color = Color.Gray
++//        )
++//
++//        Spacer(modifier = Modifier.height(24.dp))
++//
++//        ReceptionCard(
++//            title = "Register Patient",
++//            description = "Add a new patient to the system",
++//            buttonText = "Register Patient",
++//            onClick = onRegisterPatientClick
++//        )
++//
++//        Spacer(modifier = Modifier.height(16.dp))
++//
++//        ReceptionCard(
++//            title = "Patients List",
++//            description = "View registered patients",
++//            buttonText = "View Patients",
++//            onClick = onPatientsClick
++//        )
++//
++//        Spacer(modifier = Modifier.height(16.dp))
++//
++//        ReceptionCard(
++//            title = "Appointments",
++//            description = "Manage patient appointments",
++//            buttonText = "Manage Appointments",
++//            onClick = onAppointmentsClick
++//        )
++//
++//        Spacer(modifier = Modifier.height(16.dp))
++//
++//        ReceptionCard(
++//            title = "Appointment Requests",
++//            description = "Accept, reject, or suggest another time",
++//            buttonText = "View Requests",
++//            onClick = onRequestsClick
++//        )
++//
++//        Spacer(modifier = Modifier.height(24.dp))
++//
++//        Button(
++//            onClick = onLogoutClick,
++//            modifier = Modifier.fillMaxWidth(),
++//            shape = RoundedCornerShape(14.dp),
++//            colors = ButtonDefaults.buttonColors(
++//                containerColor = Color(0xFF2D7FF9)
++//            )
++//        ) {
++//            Text("Logout")
++//        }
++//    }
++//}
++//
++//@Composable
++//private fun ReceptionCard(
++//    title: String,
++//    description: String,
++//    buttonText: String,
++//    onClick: () -> Unit
++//) {
++//    Card(
++//        modifier = Modifier
++//            .fillMaxWidth()
++//            .clickable { onClick() },
++//        shape = RoundedCornerShape(28.dp),
++//        colors = CardDefaults.cardColors(
++//            containerColor = Color(0xFFE3F2FD)
++//        ),
++//        elevation = CardDefaults.cardElevation(6.dp)
++//    ) {
++//        Column(modifier = Modifier.padding(20.dp)) {
++//            Text(
++//                text = title,
++//                style = MaterialTheme.typography.titleLarge,
++//                fontWeight = FontWeight.Bold
++//            )
++//
++//            Spacer(modifier = Modifier.height(8.dp))
++//
++//            Text(
++//                text = description,
++//                color = Color.Gray
++//            )
++//            Spacer(modifier = Modifier.height(16.dp))
++//
++//            Button(
++//                onClick = onClick,
++//                modifier = Modifier.fillMaxWidth(),
++//                shape = RoundedCornerShape(14.dp),
++//                colors = ButtonDefaults.buttonColors(
++//                    containerColor = Color(0xFF2D7FF9)
++//                )
++//            ) {
++//                Text(buttonText)
++//            }
++//        }
++//    }
++//}

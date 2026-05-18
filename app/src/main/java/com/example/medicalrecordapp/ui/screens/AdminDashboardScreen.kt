@@ -3,103 +3,107 @@ package com.example.medicalrecordapp.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.medicalrecordapp.R
-import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
-import com.example.medicalrecordapp.utils.LocalLanguage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
-    onManageUsersClick: () -> Unit = {},
-    onCreateAccountClick: () -> Unit = {},
-    onStatisticsClick: () -> Unit = {},
-    onLanguageChange: (String) -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    onManageUsersClick: () -> Unit,
+    onCreateAccountClick: () -> Unit,
+    onStatisticsClick: () -> Unit,
+    onLanguageChange: (String) -> Unit,
+    onLogoutClick: () -> Unit
 ) {
-    val currentLang = LocalLanguage.current.value
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DashboardBackground)
+            .verticalScroll(rememberScrollState())
+            .padding(22.dp)
+    ) {
+        DashboardHeader(
+            title = stringResource(id = R.string.admin_dashboard),
+            subtitle = stringResource(id = R.string.welcome_admin),
+            onLanguageChange = onLanguageChange
+        )
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.admin_dashboard), fontWeight = FontWeight.Bold) },
-                actions = {
-                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
-                    Spacer(Modifier.width(8.dp))
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AdminActionCard(
-                stringResource(R.string.staff_list),
-                stringResource(R.string.staff_list_desc),
-                Icons.Default.People,
-                Color(0xFF2D7FF9),
-                onManageUsersClick
-            )
-            AdminActionCard(
-                stringResource(R.string.create_account),
-                stringResource(R.string.create_account_desc),
-                Icons.Default.PersonAdd,
-                Color(0xFF34A853),
-                onCreateAccountClick
-            )
-            AdminActionCard(
-                stringResource(R.string.statistics),
-                stringResource(R.string.statistics_desc),
-                Icons.Default.BarChart,
-                Color(0xFF9C27B0),
-                onStatisticsClick
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
-            ) {
-                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.logout))
+            Box(modifier = Modifier.weight(1f)) {
+                SmallStatCard(
+                    icon = "👥",
+                    title = stringResource(id = R.string.users),
+                    subtitle = "24",
+                    iconColor = PrimaryGreen
+                )
             }
-        }
-    }
-}
 
-@Composable
-private fun AdminActionCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
-                }
-            }
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+            Box(modifier = Modifier.weight(1f)) {
+                SmallStatCard(
+                    icon = "📋",
+                    title = stringResource(id = R.string.reports),
+                    subtitle = "08",
+                    iconColor = PrimaryGreen
+                )
             }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        MainDashboardCard(
+            icon = "👥",
+            title = stringResource(id = R.string.users_management),
+            description = stringResource(id = R.string.users_management_desc),
+            buttonText = stringResource(id = R.string.view_staff_list),
+            onClick = onManageUsersClick,
+            iconColor = PrimaryGreen,
+            buttonColor = PrimaryBlue
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        MainDashboardCard(
+            icon = "➕",
+            title = stringResource(id = R.string.create_account),
+            description = stringResource(id = R.string.create_account_desc_admin),
+            buttonText = stringResource(id = R.string.create_staff_btn),
+            onClick = onCreateAccountClick,
+            iconColor = PrimaryGreen,
+            buttonColor = PrimaryGreen
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        MainDashboardCard(
+            icon = "📊",
+            title = stringResource(id = R.string.system_statistics),
+            description = stringResource(id = R.string.system_statistics_desc),
+            buttonText = stringResource(id = R.string.view_statistics),
+            onClick = onStatisticsClick,
+            iconColor = PrimaryGreen,
+            buttonColor = PrimaryBlue
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LinearProgressIndicator(
+            progress = { 0.78f },
+            modifier = Modifier.fillMaxWidth(),
+            color = PrimaryGreen,
+            trackColor = PrimaryGreen.copy(alpha = 0.15f)
+        )
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+        LogoutButton(onLogoutClick = onLogoutClick)
     }
 }
