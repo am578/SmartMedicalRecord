@@ -1,5 +1,6 @@
 package com.example.medicalrecordapp.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +33,7 @@ fun RegisterPatientScreen(
         chronicDiseases: String
     ) -> Unit = { _, _, _, _, _, _, _, _, _ -> }
 ) {
+    BackHandler { onBackClick() }
 
     var firstName by remember { mutableStateOf("") }
     var familyName by remember { mutableStateOf("") }
@@ -62,7 +64,6 @@ fun RegisterPatientScreen(
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-
         Text(
             text = "Register Patient",
             style = MaterialTheme.typography.headlineMedium,
@@ -74,163 +75,90 @@ fun RegisterPatientScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD)
-            )
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
 
                 OutlinedTextField(
-                    value = firstName,
-                    onValueChange = { firstName = it },
-                    label = { Text("First Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    value = firstName, onValueChange = { firstName = it },
+                    label = { Text("First Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = familyName,
-                    onValueChange = { familyName = it },
-                    label = { Text("Family Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    value = familyName, onValueChange = { familyName = it },
+                    label = { Text("Family Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = cin,
-                    onValueChange = { cin = it },
-                    label = { Text("CIN / ID Card Number") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    value = cin, onValueChange = { cin = it },
+                    label = { Text("CIN / ID Card Number") }, modifier = Modifier.fillMaxWidth(),
+                    singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = {
-                         if (it.all { c -> c.isDigit() || c == '+' }) phone = it
-                    },
-                    label = { Text("Phone") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    onValueChange = { if (it.all { c -> c.isDigit() || c == '+' }) phone = it },
+                    label = { Text("Phone") }, modifier = Modifier.fillMaxWidth(),
+                    singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = dateOfBirth,
-                    onValueChange = { dateOfBirth = it },
-                    label = { Text("Date of Birth") },
-                    placeholder = { Text("DD/MM/YYYY") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    value = dateOfBirth, onValueChange = { dateOfBirth = it },
+                    label = { Text("Date of Birth") }, placeholder = { Text("DD/MM/YYYY") },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ExposedDropdownMenuBox(
-                    expanded = genderExpanded,
-                    onExpandedChange = { genderExpanded = !genderExpanded }
-                ) {
+                ExposedDropdownMenuBox(expanded = genderExpanded, onExpandedChange = { genderExpanded = !genderExpanded }) {
                     OutlinedTextField(
-                        value = gender,
-                        onValueChange = {},
-                        readOnly = true,
+                        value = gender, onValueChange = {}, readOnly = true,
                         label = { Text("Gender") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
                     )
-
-                    ExposedDropdownMenu(
-                        expanded = genderExpanded,
-                        onDismissRequest = { genderExpanded = false }
-                    ) {
+                    ExposedDropdownMenu(expanded = genderExpanded, onDismissRequest = { genderExpanded = false }) {
                         genderOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    gender = option
-                                    genderExpanded = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(option) }, onClick = { gender = option; genderExpanded = false })
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text("Address") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    value = address, onValueChange = { address = it },
+                    label = { Text("Address") }, modifier = Modifier.fillMaxWidth(), singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ExposedDropdownMenuBox(
-                    expanded = bloodGroupExpanded,
-                    onExpandedChange = { bloodGroupExpanded = !bloodGroupExpanded }
-                ) {
+                ExposedDropdownMenuBox(expanded = bloodGroupExpanded, onExpandedChange = { bloodGroupExpanded = !bloodGroupExpanded }) {
                     OutlinedTextField(
-                        value = bloodGroup,
-                        onValueChange = {},
-                        readOnly = true,
+                        value = bloodGroup, onValueChange = {}, readOnly = true,
                         label = { Text("Blood Group") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodGroupExpanded)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodGroupExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
                     )
-
-                    ExposedDropdownMenu(
-                        expanded = bloodGroupExpanded,
-                        onDismissRequest = { bloodGroupExpanded = false }
-                    ) {
+                    ExposedDropdownMenu(expanded = bloodGroupExpanded, onDismissRequest = { bloodGroupExpanded = false }) {
                         bloodGroupOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    bloodGroup = option
-                                    bloodGroupExpanded = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(option) }, onClick = { bloodGroup = option; bloodGroupExpanded = false })
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                     value = chronicDiseases,
-                onValueChange = { chronicDiseases = it },
-                label = { Text("Chronic Diseases") },
-                placeholder = { Text("None / Diabetes / Asthma...") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
+                    value = chronicDiseases, onValueChange = { chronicDiseases = it },
+                    label = { Text("Chronic Diseases") },
+                    placeholder = { Text("None / Diabetes / Asthma...") },
+                    modifier = Modifier.fillMaxWidth(), minLines = 2
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (formError.isNotEmpty()) {
-                    Text(
-                        text = formError,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Text(text = formError, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
@@ -249,66 +177,33 @@ fun RegisterPatientScreen(
                             address.isBlank() -> formError = "Please enter address"
                             bloodGroup.isBlank() -> formError = "Please select blood group"
                             chronicDiseases.isBlank() -> formError = "Please enter chronic diseases or write None"
-
                             else -> {
                                 formError = ""
                                 isLoading = true
-
                                 val patient = hashMapOf(
-                                    "firstName" to firstName,
-                                    "familyName" to familyName,
-                                    "cin" to cin,
-                                    "phone" to phone,
-                                    "dateOfBirth" to dateOfBirth,
-                                    "gender" to gender,
-                                    "address" to address,
-                                    "bloodGroup" to bloodGroup,
-                                    "chronicDiseases" to chronicDiseases,
+                                    "firstName" to firstName, "familyName" to familyName,
+                                    "cin" to cin, "phone" to phone, "dateOfBirth" to dateOfBirth,
+                                    "gender" to gender, "address" to address,
+                                    "bloodGroup" to bloodGroup, "chronicDiseases" to chronicDiseases,
                                     "createdBy" to (auth.currentUser?.uid ?: ""),
                                     "createdAt" to System.currentTimeMillis()
                                 )
-
-                                db.collection("patients")
-                                    .add(patient)
+                                db.collection("patients").add(patient)
                                     .addOnSuccessListener {
                                         isLoading = false
-                                        onSaveClick(
-                                            firstName,
-                                            familyName,
-                                            cin,
-                                            phone,
-                                            dateOfBirth,
-                                            gender,
-                                            address,
-                                            bloodGroup,
-                                            chronicDiseases
-                                        )
+                                        onSaveClick(firstName, familyName, cin, phone, dateOfBirth, gender, address, bloodGroup, chronicDiseases)
                                     }
-                                    .addOnFailureListener { e ->
-                                        isLoading = false
-                                        formError = e.message ?: "Failed to save patient"
-                                    }
+                                    .addOnFailureListener { e -> isLoading = false; formError = e.message ?: "Failed to save patient" }
                             }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2D7FF9)
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7FF9)),
                     enabled = !isLoading
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("Save Patient")
-                    }
+                    if (isLoading) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    else Text("Save Patient")
                 }
             }
         }
@@ -317,13 +212,9 @@ fun RegisterPatientScreen(
 
         Button(
             onClick = onBackClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2D7FF9)
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7FF9))
         ) {
             Text("Back")
         }

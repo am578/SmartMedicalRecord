@@ -1,148 +1,86 @@
- package com.example.medicalrecordapp.ui.screens
+package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
+import com.example.medicalrecordapp.utils.LocalLanguage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceptionDashboardScreen(
-    onRegisterPatientClick: () -> Unit,
-    onPatientsClick: () -> Unit,
-    onAppointmentsClick: () -> Unit,
-    onRequestsClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onRegisterPatientClick: () -> Unit = {},
+    onPatientsClick: () -> Unit = {},
+    onAppointmentsClick: () -> Unit = {},
+    onRequestsClick: () -> Unit = {},
+    onLanguageChange: (String) -> Unit = {},
+    onLogoutClick: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFEFF7FF))
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
-    ) {
-        Text(
-            text = "Reception Dashboard",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+    val currentLang = LocalLanguage.current.value
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Welcome Receptionist",
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        ReceptionCard(
-            title = "Register Patient",
-            description = "Add a new patient to the system",
-            buttonText = "Register Patient",
-            onClick = onRegisterPatientClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ReceptionCard(
-            title = "Patients List",
-            description = "View registered patients",
-            buttonText = "View Patients",
-            onClick = onPatientsClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ReceptionCard(
-            title = "Appointments",
-            description = "Manage patient appointments",
-            buttonText = "Manage Appointments",
-            onClick = onAppointmentsClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ReceptionCard(
-            title = "Appointment Requests",
-            description = "Accept, reject, or suggest another time",
-            buttonText = "View Requests",
-            onClick = onRequestsClick
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2D7FF9)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Reception", fontWeight = FontWeight.Bold) },
+                actions = {
+                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
+                    Spacer(Modifier.width(8.dp))
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("Logout")
+            ReceptionCard("Register Patient", "Add a new patient to the system", Icons.Default.PersonAdd, Color(0xFF34A853), onRegisterPatientClick)
+            ReceptionCard("Patients List", "Browse and search all patients", Icons.Default.People, Color(0xFF2D7FF9), onPatientsClick)
+            ReceptionCard("Appointments", "View scheduled appointments", Icons.Default.CalendarToday, Color(0xFF9C27B0), onAppointmentsClick)
+            ReceptionCard("Appointment Requests", "Manage pending requests", Icons.Default.Pending, Color(0xFFF4A700), onRequestsClick)
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Logout")
+            }
         }
     }
 }
 
 @Composable
-private fun ReceptionCard(
-    title: String,
-    description: String,
-    buttonText: String,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE3F2FD)
-        ),
-        elevation = CardDefaults.cardElevation(6.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = description,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2D7FF9)
-                )
-            ) {
-                Text(buttonText)
+private fun ReceptionCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

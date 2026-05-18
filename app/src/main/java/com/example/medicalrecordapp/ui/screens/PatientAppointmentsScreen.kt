@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
 import com.example.medicalrecordapp.domain.model.Appointment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -84,7 +85,7 @@ fun PatientAppointmentsScreen(
             }
         }
     }
-
+    BackHandler { onBackClick() }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(

@@ -1,157 +1,84 @@
 package com.example.medicalrecordapp.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.medicalrecordapp.R
+import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
+import com.example.medicalrecordapp.utils.LocalLanguage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorDashboardScreen(
     onPatientsClick: () -> Unit = {},
     onAppointmentsClick: () -> Unit = {},
+    onLanguageChange: (String) -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFEFF7FF)) // baby blue
-            .padding(20.dp)
-    ) {
+    val currentLang = LocalLanguage.current.value
 
-        // 🔥 Header فيه icon جديد
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_ai),
-                contentDescription = "AI Icon",
-                modifier = Modifier.size(150.dp)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Doctor Dashboard", fontWeight = FontWeight.Bold) },
+                actions = {
+                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
+                    Spacer(Modifier.width(8.dp))
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            DashboardActionCard("My Patients", "View and manage your patient list", Icons.Default.People, Color(0xFF2D7FF9), onPatientsClick)
+            DashboardActionCard("Appointments", "Check today's and upcoming appointments", Icons.Default.CalendarToday, Color(0xFF34A853), onAppointmentsClick)
 
-            // ❌ نحيدو Spacer نهائي
-            // Spacer(modifier = Modifier.width(6.dp))
-
-            Column(
-                modifier = Modifier.padding(start = 2.dp) // 👈 هذا هو السر
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
             ) {
-                Text(
-                    text = "Doctor Dashboard",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Welcome Doctor",
-                    color = Color.Gray
-                )
+                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Logout")
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 🟦 Patients Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onPatientsClick() },
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD)
-            ),
-            elevation = CardDefaults.cardElevation(6.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Patients",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "View and manage patients",
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = onPatientsClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2D7FF9)
-                    )
-                ) {
-                    Text("View Patients")
+@Composable
+private fun DashboardActionCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 🟦 Appointments Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onAppointmentsClick() },
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F2FD)
-            ),
-            elevation = CardDefaults.cardElevation(6.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Appointments",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Check your appointments",
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = onAppointmentsClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2D7FF9)
-                    )
-                ) {
-                    Text("View Appointments")
-                }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 🔵 Logout
-        Button(
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2D7FF9)
-            )
-        ) {
-            Text("Logout")
-        }
-    }}
+    }
+}

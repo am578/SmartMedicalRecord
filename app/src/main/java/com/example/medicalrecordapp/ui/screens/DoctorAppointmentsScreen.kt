@@ -1,5 +1,6 @@
 package com.example.medicalrecordapp.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,8 @@ fun DoctorAppointmentsScreen(
     showActions: Boolean = false,
     onBackClick: () -> Unit = {}
 ) {
+    BackHandler { onBackClick() }
+
     val db = FirebaseFirestore.getInstance()
 
     Column(
@@ -28,80 +31,48 @@ fun DoctorAppointmentsScreen(
             .background(Color(0xFFEFF7FF))
             .padding(16.dp)
     ) {
+        Text("Appointments", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(16.dp))
 
-        Text(
-            text = "Appointments",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onBackClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp)
-        ) {
+        Button(onClick = onBackClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
             Text("Back")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
         if (appointments.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text("No appointments found")
-            }
+            Box(modifier = Modifier.fillMaxSize()) { Text("No appointments found") }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(appointments) { appointment ->
-
                     AppointmentManagementCard(
                         appointment = appointment,
                         showActions = showActions,
                         onAcceptClick = {
                             if (appointment.documentId.isNotBlank()) {
-                                db.collection("appointments")
-                                    .document(appointment.documentId)
-                                    .update(
-                                        mapOf(
-                                            "status" to "ACCEPTED",
-                                            "paymentStatus" to "UNPAID"
-                                        )
-                                    )
+                                db.collection("appointments").document(appointment.documentId)
+                                    .update(mapOf("status" to "ACCEPTED", "paymentStatus" to "UNPAID"))
                             }
                         },
                         onRejectClick = {
                             if (appointment.documentId.isNotBlank()) {
-                                db.collection("appointments")
-                                    .document(appointment.documentId)
-                                    .update(
-                                        mapOf(
-                                            "status" to "REJECTED",
-                                            "paymentStatus" to "UNPAID"
-                                        )
-                                    )
+                                db.collection("appointments").document(appointment.documentId)
+                                    .update(mapOf("status" to "REJECTED", "paymentStatus" to "UNPAID"))
                             }
                         },
                         onSuggestClick = { suggestedDate, suggestedTime ->
                             if (appointment.documentId.isNotBlank()) {
-                                db.collection("appointments")
-                                    .document(appointment.documentId)
-                                    .update(
-                                        mapOf(
-                                            "status" to "SUGGESTED",
-                                            "date" to suggestedDate,
-                                            "time" to suggestedTime,
-                                            "suggestedDate" to suggestedDate,
-                                            "suggestedTime" to suggestedTime,
-                                            "paymentStatus" to "UNPAID"
-                                        )
-                                    )
+                                db.collection("appointments").document(appointment.documentId)
+                                    .update(mapOf(
+                                        "status" to "SUGGESTED",
+                                        "date" to suggestedDate,
+                                        "time" to suggestedTime,
+                                        "suggestedDate" to suggestedDate,
+                                        "suggestedTime" to suggestedTime,
+                                        "paymentStatus" to "UNPAID"
+                                    ))
                             }
-                             }
+                        }
                     )
                 }
             }
@@ -123,60 +94,33 @@ fun AppointmentManagementCard(
     var errorMessage by remember { mutableStateOf("") }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE3F2FD)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-            Text(
-                text = appointment.patientName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(text = "Date: ${appointment.date}")
-            Text(text = "Time: ${appointment.time}")
-            Text(text = "Status: ${appointment.status}")
+            Text(appointment.patientName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            Text("Date: ${appointment.date}")
+            Text("Time: ${appointment.time}")
+            Text("Status: ${appointment.status}")
 
             if (showActions && appointment.status == "PENDING") {
+                Spacer(Modifier.height(14.dp))
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = onAcceptClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onAcceptClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
                         Text("Accept")
                     }
-
-                    OutlinedButton(
-                        onClick = onRejectClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
+                    OutlinedButton(onClick = onRejectClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
                         Text("Reject")
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
                 OutlinedButton(
-                    onClick = {
-                        showSuggestFields = !showSuggestFields
-                        errorMessage = ""
-                    },
+                    onClick = { showSuggestFields = !showSuggestFields; errorMessage = "" },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -184,44 +128,27 @@ fun AppointmentManagementCard(
                 }
 
                 if (showSuggestFields) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(
-                        value = suggestedDate,
-                        onValueChange = {
-                            suggestedDate = it
-                            errorMessage = ""
-                        },
-                        label = { Text("Suggested Date") },
-                        placeholder = { Text("YYYY-MM-DD") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        value = suggestedDate, onValueChange = { suggestedDate = it; errorMessage = "" },
+                        label = { Text("Suggested Date") }, placeholder = { Text("YYYY-MM-DD") },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(Modifier.height(8.dp))
 
                     OutlinedTextField(
-                        value = suggestedTime,
-                        onValueChange = {
-                            suggestedTime = it
-                            errorMessage = ""
-                        },
-                        label = { Text("Suggested Time") },
-                        placeholder = { Text("10:00") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        value = suggestedTime, onValueChange = { suggestedTime = it; errorMessage = "" },
+                        label = { Text("Suggested Time") }, placeholder = { Text("10:00") },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
                     )
 
                     if (errorMessage.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = errorMessage,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(errorMessage, color = MaterialTheme.colorScheme.error)
                     }
 
-                    Spacer(modifier = Modifier.
-                     height(8.dp))
+                    Spacer(Modifier.height(8.dp))
 
                     Button(
                         onClick = {
@@ -229,8 +156,7 @@ fun AppointmentManagementCard(
                                 errorMessage = "Please enter suggested date and time"
                             } else {
                                 onSuggestClick(suggestedDate, suggestedTime)
-                                showSuggestFields = false
-                                errorMessage = ""
+                                showSuggestFields = false; errorMessage = ""
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

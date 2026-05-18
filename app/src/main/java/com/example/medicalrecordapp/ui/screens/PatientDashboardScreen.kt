@@ -1,7 +1,6 @@
 package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,118 +11,75 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
+import com.example.medicalrecordapp.utils.LocalLanguage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDashboardScreen(
-    onRequestAppointmentClick: () -> Unit = {}, // رجعت بدون پارامتر لأننا سنملأ الأعراض في الصفحة التالية
+    onRequestAppointmentClick: () -> Unit = {},
     onMyAppointmentsClick: () -> Unit = {},
     onMyRecordClick: () -> Unit = {},
+    onLanguageChange: (String) -> Unit = {},
     onLogoutClick: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(20.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text(
-            text = "Patient Dashboard",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+    val currentLang = LocalLanguage.current.value
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Welcome Patient",
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 1. كارد طلب موعد (رجعت كارد عادية وبسيطة)
-        PatientCard(
-            title = "Request Appointment",
-            description = "Send a new appointment request to a doctor",
-            icon = Icons.Default.MedicalServices,
-            onClick = onRequestAppointmentClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 2. كارد مواعيدي
-        PatientCard(
-            title = "My Appointments",
-            description = "Check your scheduled appointments status",
-            icon = Icons.Default.CalendarMonth,
-            onClick = onMyAppointmentsClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 3. كارد السجل الطبي
-        PatientCard(
-            title = "My Medical Record",
-            description = "View your detailed medical history",
-            icon = Icons.Default.History,
-            onClick = onMyRecordClick
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("My Health", fontWeight = FontWeight.Bold) },
+                actions = {
+                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
+                    Spacer(Modifier.width(8.dp))
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("Logout", fontWeight = FontWeight.Bold)
+            DashboardCard("Request Appointment", "Book a new appointment with your doctor", Icons.Default.CalendarToday, Color(0xFF2D7FF9), onRequestAppointmentClick)
+            DashboardCard("My Appointments", "View all your scheduled appointments", Icons.Default.Schedule, Color(0xFF34A853), onMyAppointmentsClick)
+            DashboardCard("My Medical Record", "Access your full medical history", Icons.Default.MedicalInformation, Color(0xFF9C27B0), onMyRecordClick)
+
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Logout")
+            }
         }
     }
 }
 
 @Composable
-private fun PatientCard(
-    title: String,
-    description: String,
-    icon: ImageVector,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
+private fun DashboardCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
+                }
+            }
+            Spacer(Modifier.width(16.dp))
             Column {
-                Text(
-                    title,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    description,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
