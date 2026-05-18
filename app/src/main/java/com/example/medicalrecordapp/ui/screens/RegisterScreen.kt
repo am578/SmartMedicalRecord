@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,19 @@ fun RegisterScreen(
 
     var registerError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+
+    val errFirstName = stringResource(R.string.err_first_name)
+    val errFamilyName = stringResource(R.string.err_family_name)
+    val errEmail = stringResource(R.string.err_email)
+    val errPasswordLength = stringResource(R.string.err_password_length)
+    val errCin = stringResource(R.string.err_cin)
+    val errPhone = stringResource(R.string.err_phone)
+    val errDob = stringResource(R.string.err_dob)
+    val errGender = stringResource(R.string.err_gender)
+    val errAddress = stringResource(R.string.err_address)
+    val errBloodGroup = stringResource(R.string.err_blood_group)
+    val errChronic = stringResource(R.string.err_chronic)
+    val errRegFailed = stringResource(R.string.registration_failed)
 
     Box(
         modifier = Modifier
@@ -93,7 +107,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Create Account",
+                    text = stringResource(R.string.create_account),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -101,7 +115,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Register as a patient",
+                    text = stringResource(R.string.register_as_patient),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
@@ -110,7 +124,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    label = { Text("First Name") },
+                    label = { Text(stringResource(R.string.first_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -123,7 +137,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = familyName,
                     onValueChange = { familyName = it },
-                    label = { Text("Family Name") },
+                    label = { Text(stringResource(R.string.family_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -136,7 +150,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.email)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -149,7 +163,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -163,7 +177,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = cin,
                     onValueChange = { cin = it },
-                    label = { Text("CIN / ID Card Number") },
+                    label = { Text(stringResource(R.string.cin_id)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -176,7 +190,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Phone") },
+                    label = { Text(stringResource(R.string.phone)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -189,8 +203,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = dateOfBirth,
                     onValueChange = { dateOfBirth = it },
-                    label = { Text("Date of Birth") },
-                    placeholder = { Text("DD/MM/YYYY") },
+                    label = { Text(stringResource(R.string.dob)) },
+                    placeholder = { Text(stringResource(R.string.dob_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -202,8 +216,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = gender,
                     onValueChange = { gender = it },
-                    label = { Text("Gender") },
-                    placeholder = { Text("Male / Female") },
+                    label = { Text(stringResource(R.string.gender)) },
+                    placeholder = { Text(stringResource(R.string.gender_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -216,7 +230,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
-                    label = { Text("Address") },
+                    label = { Text(stringResource(R.string.address)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -229,8 +243,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = bloodGroup,
                     onValueChange = { bloodGroup = it },
-                    label = { Text("Blood Group") },
-                    placeholder = { Text("A+, A-, B+, B-, AB+, AB-, O+, O-") },
+                    label = { Text(stringResource(R.string.blood_group)) },
+                    placeholder = { Text(stringResource(R.string.blood_group_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -243,8 +257,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = chronicDiseases,
                     onValueChange = { chronicDiseases = it },
-                    label = { Text("Chronic Diseases") },
-                    placeholder = { Text("None / Diabetes / Asthma...") },
+                    label = { Text(stringResource(R.string.chronic_diseases)) },
+                    placeholder = { Text(stringResource(R.string.chronic_diseases_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -266,17 +280,17 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         when {
-                            firstName.isBlank() -> registerError = "Please enter your first name"
-                            familyName.isBlank() -> registerError = "Please enter your family name"
-                            email.isBlank() -> registerError = "Please enter your email"
-                            password.length < 6 -> registerError = "Password must be at least 6 characters"
-                            cin.isBlank() -> registerError = "Please enter your CIN"
-                            phone.isBlank() -> registerError = "Please enter your phone number"
-                            dateOfBirth.isBlank() -> registerError = "Please enter your date of birth"
-                            gender.isBlank() -> registerError = "Please enter your gender"
-                            address.isBlank() -> registerError = "Please enter your address"
-                            bloodGroup.isBlank() -> registerError = "Please enter your blood group"
-                            chronicDiseases.isBlank() -> registerError = "Please enter chronic diseases or write None"
+                            firstName.isBlank() -> registerError = errFirstName
+                            familyName.isBlank() -> registerError = errFamilyName
+                            email.isBlank() -> registerError = errEmail
+                            password.length < 6 -> registerError = errPasswordLength
+                            cin.isBlank() -> registerError = errCin
+                            phone.isBlank() -> registerError = errPhone
+                            dateOfBirth.isBlank() -> registerError = errDob
+                            gender.isBlank() -> registerError = errGender
+                            address.isBlank() -> registerError = errAddress
+                            bloodGroup.isBlank() -> registerError = errBloodGroup
+                            chronicDiseases.isBlank() -> registerError = errChronic
                             else -> {
                                 isLoading = true
                                 registerError = ""
@@ -298,7 +312,7 @@ fun RegisterScreen(
                                     if (success) {
                                         onRegisterSuccess()
                                     } else {
-                                        registerError = error ?: "Registration failed"
+                                        registerError = error ?: errRegFailed
                                     }
                                 }
                             }
@@ -316,14 +330,14 @@ fun RegisterScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Register")
+                        Text(stringResource(R.string.register))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 TextButton(onClick = onBackToLogin) {
-                    Text("Already have an account? Login")
+                    Text(stringResource(R.string.already_have_account))
                 }
             }
         }

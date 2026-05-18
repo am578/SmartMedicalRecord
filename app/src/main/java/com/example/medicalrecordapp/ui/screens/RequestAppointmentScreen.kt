@@ -19,9 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.AttachmentType
 import com.example.medicalrecordapp.utils.SupabaseClient
 import com.google.firebase.auth.FirebaseAuth
@@ -84,13 +86,22 @@ fun RequestAppointmentScreen(
 
     BackHandler { onBackClick() }
 
+    // Error message strings
+    val errDoctor = stringResource(R.string.please_enter_doctor_name)
+    val errDate = stringResource(R.string.please_enter_date)
+    val errTime = stringResource(R.string.please_enter_time)
+    val errSymptoms = stringResource(R.string.please_enter_symptoms)
+    val errNotLoggedIn = stringResource(R.string.user_not_logged_in)
+    val errReadFail = stringResource(R.string.cannot_read_file)
+    val errUploadFail = stringResource(R.string.upload_failed)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Request Appointment", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.request_appointment), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -122,7 +133,7 @@ fun RequestAppointmentScreen(
                     AppointmentInputField(
                         value = doctorName,
                         onValueChange = { doctorName = it },
-                        label = "Doctor Name",
+                        label = stringResource(R.string.doctor_name),
                         icon = Icons.Default.Person
                     )
                     Spacer(Modifier.height(16.dp))
@@ -130,7 +141,7 @@ fun RequestAppointmentScreen(
                     AppointmentInputField(
                         value = date,
                         onValueChange = { date = it },
-                        label = "Preferred Date (YYYY-MM-DD)",
+                        label = stringResource(R.string.preferred_date),
                         icon = Icons.Default.CalendarMonth
                     )
                     Spacer(Modifier.height(16.dp))
@@ -138,7 +149,7 @@ fun RequestAppointmentScreen(
                     AppointmentInputField(
                         value = time,
                         onValueChange = { time = it },
-                        label = "Preferred Time",
+                        label = stringResource(R.string.preferred_time),
                         icon = Icons.Default.Schedule
                     )
                     Spacer(Modifier.height(16.dp))
@@ -147,8 +158,8 @@ fun RequestAppointmentScreen(
                     OutlinedTextField(
                         value = symptoms,
                         onValueChange = { symptoms = it },
-                        label = { Text("Symptoms / Notes") },
-                        placeholder = { Text("How do you feel?") },
+                        label = { Text(stringResource(R.string.symptoms_notes)) },
+                        placeholder = { Text(stringResource(R.string.how_do_you_feel)) },
                         modifier = Modifier.fillMaxWidth().height(120.dp),
                         shape = RoundedCornerShape(12.dp),
                         leadingIcon = {
@@ -163,7 +174,7 @@ fun RequestAppointmentScreen(
                     Spacer(Modifier.height(16.dp))
 
                     // ====== رفع صورة أو ملف ======
-                    Text("Attach a file (optional)", fontWeight = FontWeight.SemiBold,
+                    Text(stringResource(R.string.attach_file), fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
 
@@ -176,7 +187,7 @@ fun RequestAppointmentScreen(
                             Icon(Icons.Default.Image, contentDescription = null,
                                 modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Image")
+                            Text(stringResource(R.string.image))
                         }
                         OutlinedButton(
                             onClick = { fileLauncher.launch("*/*") },
@@ -186,7 +197,7 @@ fun RequestAppointmentScreen(
                             Icon(Icons.Default.AttachFile, contentDescription = null,
                                 modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("File")
+                            Text(stringResource(R.string.file))
                         }
                     }
 
@@ -226,7 +237,7 @@ fun RequestAppointmentScreen(
                                         selectedFileName = ""
                                         selectedType = AttachmentType.NONE
                                     }) {
-                                        Text("Remove", color = Color.Red)
+                                        Text(stringResource(R.string.remove), color = Color.Red)
                                     }
                                 }
                             }
@@ -245,10 +256,10 @@ fun RequestAppointmentScreen(
                     Button(
                         onClick = {
                             when {
-                                doctorName.isBlank() -> formError = "Please enter doctor name"
-                                date.isBlank() -> formError = "Please enter preferred date"
-                                time.isBlank() -> formError = "Please enter preferred time"
-                                symptoms.isBlank() -> formError = "Please enter symptoms or notes"
+                                doctorName.isBlank() -> formError = errDoctor
+                                date.isBlank() -> formError = errDate
+                                time.isBlank() -> formError = errTime
+                                symptoms.isBlank() -> formError = errSymptoms
                                 else -> {
                                     formError = ""
                                     isLoading = true
@@ -259,7 +270,7 @@ fun RequestAppointmentScreen(
 
                                     if (patientId.isBlank()) {
                                         isLoading = false
-                                        formError = "User not logged in"
+                                        formError = errNotLoggedIn
                                         return@Button
                                     }
 
@@ -300,20 +311,18 @@ fun RequestAppointmentScreen(
                                                         ?.readBytes()
                                                         ?: run {
                                                             isLoading = false
-                                                            formError = "Cannot read file"
+                                                            formError = errReadFail
                                                             return@launch
                                                         }
                                                     val safeName = selectedFileName
                                                         .replace(Regex("[^a-zA-Z0-9._-]"), "_")
-                                                    val path = "$patientId/${System.currentTimeMillis()}_$safeName"git add .
-                                                    git commit -m "Remove fake repositories and use Firebase data sources"
-                                                    git push
+                                                    val path = "$patientId/${System.currentTimeMillis()}_$safeName"
                                                     SupabaseClient.storage.from("symptoms").upload(path, bytes)
                                                     val url = SupabaseClient.storage.from("symptoms").publicUrl(path)
                                                     saveAppointment(patientName, patientCin, url)
                                                 } catch (e: Exception) {
                                                     isLoading = false
-                                                    formError = e.message ?: "Upload failed"
+                                                    formError = e.message ?: errUploadFail
                                                 }
                                             }
                                         } else {
@@ -344,7 +353,7 @@ fun RequestAppointmentScreen(
                             CircularProgressIndicator(modifier = Modifier.size(24.dp),
                                 color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                         } else {
-                            Text("Submit Request", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.submit_request), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

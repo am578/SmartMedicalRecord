@@ -12,10 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.UserRole
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
 import kotlin.random.Random
@@ -46,13 +48,23 @@ fun AdminCreateAccountScreen(
     var createdName by remember { mutableStateOf("") }
 
     BackHandler { onBackClick() }
+
+    val errName = stringResource(R.string.err_name_required)
+    val errCin = stringResource(R.string.err_cin_required)
+    val errPhone = stringResource(R.string.err_phone_required)
+    val errAge = stringResource(R.string.err_age_invalid)
+    val errEmail = stringResource(R.string.err_email_required)
+    val errPass = stringResource(R.string.err_password_required)
+    val errSpec = stringResource(R.string.err_speciality_required)
+    val errOffice = stringResource(R.string.err_office_required)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Create Staff Account", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.create_staff_account), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -71,38 +83,38 @@ fun AdminCreateAccountScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // === اختيار الدور ===
-            Text("Account Role", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.account_role), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilterChip(
                     selected = selectedRole == UserRole.DOCTOR,
                     onClick = { selectedRole = UserRole.DOCTOR },
-                    label = { Text("Doctor") }
+                    label = { Text(stringResource(R.string.doctor)) }
                 )
                 FilterChip(
                     selected = selectedRole == UserRole.RECEPTIONIST,
                     onClick = { selectedRole = UserRole.RECEPTIONIST },
-                    label = { Text("Receptionist") }
+                    label = { Text(stringResource(R.string.receptionist)) }
                 )
             }
 
             Spacer(Modifier.height(20.dp))
 
             // === المعلومات الشخصية ===
-            Text("Personal Information", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.personal_info), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    label = { Text("First Name") },
+                    label = { Text(stringResource(R.string.first_name)) },
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
                     value = lastName,
                     onValueChange = { lastName = it },
-                    label = { Text("Last Name") },
+                    label = { Text(stringResource(R.string.last_name)) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -112,24 +124,24 @@ fun AdminCreateAccountScreen(
             OutlinedTextField(
                 value = age,
                 onValueChange = { age = it.filter { c -> c.isDigit() } },
-                label = { Text("Age") },
+                label = { Text(stringResource(R.string.age)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(10.dp))
 
-            Text("Gender", fontWeight = FontWeight.Medium)
+            Text(stringResource(R.string.gender), fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilterChip(
                     selected = selectedGender == "male",
                     onClick = { selectedGender = "male" },
-                    label = { Text("Male") }
+                    label = { Text(stringResource(R.string.male)) }
                 )
                 FilterChip(
                     selected = selectedGender == "female",
                     onClick = { selectedGender = "female" },
-                    label = { Text("Female") }
+                    label = { Text(stringResource(R.string.female)) }
                 )
             }
 
@@ -138,9 +150,9 @@ fun AdminCreateAccountScreen(
             OutlinedTextField(
                 value = cin,
                 onValueChange = { cin = it },
-                label = { Text("CIN (Identity Card Number)") },
+                label = { Text(stringResource(R.string.cin_id)) },
                 modifier = Modifier.fillMaxWidth(),
-                supportingText = { Text("Unique identifier for each user") }
+                supportingText = { Text(stringResource(R.string.cin_supporting_text)) }
             )
 
             Spacer(Modifier.height(10.dp))
@@ -148,7 +160,7 @@ fun AdminCreateAccountScreen(
             OutlinedTextField(
                 value = phone,
                 onValueChange = { phone = it },
-                label = { Text("Phone Number") },
+                label = { Text(stringResource(R.string.phone)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -156,35 +168,35 @@ fun AdminCreateAccountScreen(
 
             // === حقل خاص بالدور ===
             if (selectedRole == UserRole.DOCTOR) {
-                Text("Professional Information", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.professional_info), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
                     value = speciality,
                     onValueChange = { speciality = it },
-                    label = { Text("Speciality") },
+                    label = { Text(stringResource(R.string.speciality)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(20.dp))
             } else {
-                Text("Office Information", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.office_info), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
                     value = officeNumber,
                     onValueChange = { officeNumber = it },
-                    label = { Text("Office Number") },
+                    label = { Text(stringResource(R.string.office_number)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(20.dp))
             }
 
             // === بيانات الحساب ===
-            Text("Account Credentials", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.account_credentials), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -193,12 +205,12 @@ fun AdminCreateAccountScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     TextButton(onClick = { password = generateRandomPassword() }) {
-                        Text("Generate")
+                        Text(stringResource(R.string.generate))
                     }
                 }
             )
@@ -214,14 +226,14 @@ fun AdminCreateAccountScreen(
                 onClick = {
                     val ageInt = age.toIntOrNull() ?: 0
                     when {
-                        firstName.isBlank() || lastName.isBlank() -> errorMessage = "Please enter first and last name"
-                        cin.isBlank() -> errorMessage = "CIN is required"
-                        phone.isBlank() -> errorMessage = "Phone number is required"
-                        ageInt == 0 -> errorMessage = "Please enter a valid age"
-                        email.isBlank() -> errorMessage = "Email is required"
-                        password.isBlank() -> errorMessage = "Password is required"
-                        selectedRole == UserRole.DOCTOR && speciality.isBlank() -> errorMessage = "Please enter speciality"
-                        selectedRole == UserRole.RECEPTIONIST && officeNumber.isBlank() -> errorMessage = "Please enter office number"
+                        firstName.isBlank() || lastName.isBlank() -> errorMessage = errName
+                        cin.isBlank() -> errorMessage = errCin
+                        phone.isBlank() -> errorMessage = errPhone
+                        ageInt == 0 -> errorMessage = errAge
+                        email.isBlank() -> errorMessage = errEmail
+                        password.isBlank() -> errorMessage = errPass
+                        selectedRole == UserRole.DOCTOR && speciality.isBlank() -> errorMessage = errSpec
+                        selectedRole == UserRole.RECEPTIONIST && officeNumber.isBlank() -> errorMessage = errOffice
                         else -> {
                             isLoading = true
                             errorMessage = ""
@@ -255,7 +267,7 @@ fun AdminCreateAccountScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF34A853))
             ) {
-                Text(if (isLoading) "Creating..." else "Create Account")
+                Text(if (isLoading) stringResource(R.string.creating) else stringResource(R.string.create_account))
             }
         }
     }
@@ -270,18 +282,18 @@ fun AdminCreateAccountScreen(
                     modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("✅ Account Created!", style = MaterialTheme.typography.headlineSmall,
+                    Text(stringResource(R.string.account_created), style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold, color = Color(0xFF34A853))
                     Spacer(Modifier.height(16.dp))
-                    Text("Share these credentials with the new staff member:", color = Color.Gray)
+                    Text(stringResource(R.string.share_credentials), color = Color.Gray)
                     Spacer(Modifier.height(12.dp))
-                    CredentialRow("Name", createdName)
-                    CredentialRow("Role", createdRole)
-                    CredentialRow("Email", createdEmail)
-                    CredentialRow("Password", createdPassword)
+                    CredentialRow(stringResource(R.string.name), createdName)
+                    CredentialRow(stringResource(R.string.role), createdRole)
+                    CredentialRow(stringResource(R.string.email), createdEmail)
+                    CredentialRow(stringResource(R.string.password), createdPassword)
                     Spacer(Modifier.height(20.dp))
                     Button(onClick = { showCredentialsDialog = false }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Done")
+                        Text(stringResource(R.string.done))
                     }
                 }
             }

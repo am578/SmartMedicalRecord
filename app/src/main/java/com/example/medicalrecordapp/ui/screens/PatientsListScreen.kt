@@ -20,8 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.Patient
 
 @Composable
@@ -39,13 +41,14 @@ fun PatientsListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFEFF7FF))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(
-            text = "Patients List",
+            text = stringResource(R.string.patients_list),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -53,7 +56,7 @@ fun PatientsListScreen(
         OutlinedTextField(
             value = searchText,
             onValueChange = { searchText = it },
-            label = { Text("Search patient") },
+            label = { Text(stringResource(R.string.search_patient)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -63,7 +66,7 @@ fun PatientsListScreen(
             onClick = onBackClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back")
+            Text(stringResource(R.string.back))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +81,7 @@ fun PatientsListScreen(
                         .padding(bottom = 12.dp)
                         .clickable { onPatientClick(patient) },
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFE3F2FD)
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -87,9 +90,9 @@ fun PatientsListScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(text = "Age: ${patient.age}")
-                        Text(text = "Gender: ${patient.gender}")
-                        Text(text = "Phone: ${patient.phone}")
+                        Text(text = stringResource(R.string.age_label) + ": ${patient.age}")
+                        Text(text = stringResource(R.string.gender_label) + ": ${patient.gender}")
+                        Text(text = stringResource(R.string.phone_label) + ": ${patient.phone}")
                     }
                 }
             }

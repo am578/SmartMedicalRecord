@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
 import com.example.medicalrecordapp.utils.LocalLanguage
 
@@ -32,7 +34,7 @@ fun PatientDashboardScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("My Health", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.my_health), fontWeight = FontWeight.Bold) },
                 actions = {
                     LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
                     Spacer(Modifier.width(8.dp))
@@ -49,9 +51,27 @@ fun PatientDashboardScreen(
                 .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            DashboardCard("Request Appointment", "Book a new appointment with your doctor", Icons.Default.CalendarToday, Color(0xFF2D7FF9), onRequestAppointmentClick)
-            DashboardCard("My Appointments", "View all your scheduled appointments", Icons.Default.Schedule, Color(0xFF34A853), onMyAppointmentsClick)
-            DashboardCard("My Medical Record", "Access your full medical history", Icons.Default.MedicalInformation, Color(0xFF9C27B0), onMyRecordClick)
+            DashboardCard(
+                stringResource(R.string.request_appointment),
+                stringResource(R.string.book_appointment_desc),
+                Icons.Default.CalendarToday,
+                Color(0xFF2D7FF9),
+                onRequestAppointmentClick
+            )
+            DashboardCard(
+                stringResource(R.string.my_appointments),
+                stringResource(R.string.view_appointments_desc),
+                Icons.Default.Schedule,
+                Color(0xFF34A853),
+                onMyAppointmentsClick
+            )
+            DashboardCard(
+                stringResource(R.string.my_medical_record),
+                stringResource(R.string.access_history_desc),
+                Icons.Default.MedicalInformation,
+                Color(0xFF9C27B0),
+                onMyRecordClick
+            )
 
             Spacer(Modifier.height(8.dp))
             Button(
@@ -61,7 +81,7 @@ fun PatientDashboardScreen(
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Logout")
+                Text(stringResource(R.string.logout))
             }
         }
     }

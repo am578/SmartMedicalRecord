@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">السجل الطبي الذكي</string>
+    <string name="my_health">صحتي</string>
+    <string name="request_appointment">طلب موعد</string>
+    <string name="book_appointment_desc">حجز موعد جديد مع طبيبك</string>
+    <string name="my_appointments">مواعيدي</string>
+    <string name="view_appointments_desc">عرض جميع مواعيدك المجدولة</string>
+    <string name="my_medical_record">سجلي الطبي</string>
+    <string name="access_history_desc">الوصول إلى تاريخك الطبي الكامل</string>
+    <string name="logout">تسجيل الخروج</string>
+
+    <string name="doctor_name">اسم الطبيب</string>
+    <string name="preferred_date">التاريخ المفضل (YYYY-MM-DD)</string>
+    <string name="preferred_time">الوقت المفضل</string>
+    <string name="symptoms_notes">الأعراض / ملاحظات</string>
+    <string name="how_do_you_feel">بماذا تشعر؟</string>
+    <string name="attach_file">إرفاق ملف (اختياري)</string>
+    <string name="image">صورة</string>
+    <string name="file">ملف</string>
+    <string name="remove">إزالة</string>
+    <string name="submit_request">إرسال الطلب</string>
+
+    <string name="please_enter_doctor_name">يرجى إدخال اسم الطبيب</string>
+    <string name="please_enter_date">يرجى إدخال التاريخ المفضل</string>
+    <string name="please_enter_time">يرجى إدخال الوقت المفضل</string>
+    <string name="please_enter_symptoms">يرجى إدخال الأعراض أو الملاحظات</string>
+    <string name="user_not_logged_in">المستخدم غير مسجل الدخول</string>
+    <string name="cannot_read_file">لا يمكن قراءة الملف</string>
+    <string name="upload_failed">فشل الرفع</string>
+    <string name="language_en">English</string>
+    <string name="language_ar">العربية</string>
+    <string name="back">رجوع</string>
+
+    <string name="welcome_back">مرحباً بعودتك</string>
+    <string name="login_subtitle">قم بتسجيل الدخول إلى حسابك</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="no_account_register">ليس لديك حساب؟ سجل الآن</string>
+    <string name="enter_email_password">يرجى إدخال البريد الإلكتروني وكلمة المرور</string>
+    <string name="login_failed">فشل تسجيل الدخول</string>
+</resources>

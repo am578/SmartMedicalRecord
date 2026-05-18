@@ -18,9 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.AttachmentType
 import com.example.medicalrecordapp.domain.model.Patient
 import com.google.firebase.auth.FirebaseAuth
@@ -61,6 +63,13 @@ fun PatientDetailsScreen(
     val patientFullName = "${patient.firstName} ${patient.lastName}".trim()
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault()) }
 
+    // Resource strings
+    val errDiag = stringResource(R.string.please_enter_diagnosis)
+    val errNotes = stringResource(R.string.please_enter_medical_notes)
+    val errPresc = stringResource(R.string.please_enter_prescription)
+    val errCinNotFound = stringResource(R.string.err_cin_not_found)
+    val successMsg = stringResource(R.string.record_saved_success)
+
     LaunchedEffect(patient.cin) {
         if (patient.cin.isNotBlank()) {
             db.collection("appointments")
@@ -89,10 +98,10 @@ fun PatientDetailsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Patient Details", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.patient_details), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -121,14 +130,14 @@ fun PatientDetailsScreen(
                     Text(patientFullName, style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(12.dp))
-                    PatientInfoLine("CIN", patient.cin)
-                    PatientInfoLine("Date of Birth", patient.dateOfBirth)
-                    PatientInfoLine("Age", patient.age.toString())
-                    PatientInfoLine("Gender", patient.gender)
-                    PatientInfoLine("Phone", patient.phone)
-                    PatientInfoLine("Address", patient.address)
-                    PatientInfoLine("Blood Group", patient.bloodGroup)
-                    PatientInfoLine("Chronic Diseases", patient.chronicDiseases)
+                    PatientInfoLine(stringResource(R.string.cin_id_label), patient.cin)
+                    PatientInfoLine(stringResource(R.string.dob), patient.dateOfBirth)
+                    PatientInfoLine(stringResource(R.string.age_label), patient.age.toString())
+                    PatientInfoLine(stringResource(R.string.gender_label), patient.gender)
+                    PatientInfoLine(stringResource(R.string.phone_label), patient.phone)
+                    PatientInfoLine(stringResource(R.string.address), patient.address)
+                    PatientInfoLine(stringResource(R.string.blood_group), patient.bloodGroup)
+                    PatientInfoLine(stringResource(R.string.chronic_diseases), patient.chronicDiseases)
                 }
             }
 
@@ -136,23 +145,23 @@ fun PatientDetailsScreen(
 
             // ====== الأعراض السابقة ======
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 elevation = CardDefaults.cardElevation(2.dp)) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Patient Symptoms History",
+                    Text(stringResource(R.string.symptoms_history),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFF57F17))
+                        color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(10.dp))
 
                     if (appointmentSymptoms.isEmpty()) {
-                        Text("No symptoms history found", color = Color.Gray)
+                        Text(stringResource(R.string.no_symptoms_history), color = Color.Gray)
                     } else {
                         appointmentSymptoms.forEach { item ->
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                 elevation = CardDefaults.cardElevation(1.dp)
                             ) {
                                 Column(modifier = Modifier.padding(14.dp)) {
@@ -192,7 +201,7 @@ fun PatientDetailsScreen(
                                                 ) {
                                                     Icon(Icons.Default.AttachFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                                     Spacer(Modifier.width(8.dp))
-                                                    Text(item.attachmentName.ifBlank { "Attached File" },
+                                                    Text(item.attachmentName.ifBlank { stringResource(R.string.attached_file) },
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.primary)
                                                 }
@@ -214,28 +223,28 @@ fun PatientDetailsScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp)) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Doctor Medical Record",
+                    Text(stringResource(R.string.medical_record_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(value = diagnosis, onValueChange = { diagnosis = it },
-                        label = { Text("Diagnosis") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                        label = { Text(stringResource(R.string.diagnosis)) }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                     Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(value = medicalNotes, onValueChange = { medicalNotes = it },
-                        label = { Text("Medical Notes") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                        label = { Text(stringResource(R.string.medical_notes)) }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                     Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(value = prescription, onValueChange = { prescription = it },
-                        label = { Text("Prescription / Treatment") },
+                        label = { Text(stringResource(R.string.prescription)) },
                         modifier = Modifier.fillMaxWidth(), minLines = 3)
                     Spacer(Modifier.height(12.dp))
 
                     if (message.isNotEmpty()) {
                         Text(
                             text = message,
-                            color = if (message.contains("saved", ignoreCase = true))
+                            color = if (message == successMsg)
                                 Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
                         )
                         Spacer(Modifier.height(8.dp))
@@ -244,10 +253,10 @@ fun PatientDetailsScreen(
                     Button(
                         onClick = {
                             when {
-                                diagnosis.isBlank() -> message = "Please enter diagnosis"
-                                medicalNotes.isBlank() -> message = "Please enter medical notes"
-                                prescription.isBlank() -> message = "Please enter prescription"
-                                patient.cin.isBlank() -> message = "Patient CIN not found"
+                                diagnosis.isBlank() -> message = errDiag
+                                medicalNotes.isBlank() -> message = errNotes
+                                prescription.isBlank() -> message = errPresc
+                                patient.cin.isBlank() -> message = errCinNotFound
                                 else -> {
                                     isSaving = true; message = ""
                                     val record = hashMapOf(
@@ -264,7 +273,7 @@ fun PatientDetailsScreen(
                                     db.collection("medicalRecords").add(record)
                                         .addOnSuccessListener {
                                             isSaving = false
-                                            message = "Medical record saved successfully"
+                                            message = successMsg
                                             diagnosis = ""; medicalNotes = ""; prescription = ""
                                         }
                                         .addOnFailureListener { e ->
@@ -276,12 +285,12 @@ fun PatientDetailsScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7FF9)),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         enabled = !isSaving
                     ) {
-                        if (isSaving) CircularProgressIndicator(color = Color.White,
+                        if (isSaving) CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                        else Text("Save Medical Record")
+                        else Text(stringResource(R.string.save_medical_record))
                     }
                 }
             }

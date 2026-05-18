@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.medicalrecordapp"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.medicalrecordapp"
@@ -64,6 +62,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(platform("io.github.jan-tennert.supabase:bom:2.6.1"))
     implementation("io.github.jan-tennert.supabase:storage-kt")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.ktor:ktor-client-android:2.3.12")
     implementation("androidx.activity:activity-compose:1.9.0")
 }

@@ -13,9 +13,11 @@ import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -44,13 +46,16 @@ fun MyMedicalRecordScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
+    val errNotLoggedIn = stringResource(R.string.user_not_logged_in)
+    val errCinNotFound = stringResource(R.string.err_cin_not_found)
+
     LaunchedEffect(Unit) {
         val currentUser = auth.currentUser
         val patientId = currentUser?.uid ?: ""
 
         if (patientId.isBlank()) {
             isLoading = false
-            errorMessage = "User not logged in"
+            errorMessage = errNotLoggedIn
             return@LaunchedEffect
         }
 
@@ -69,7 +74,7 @@ fun MyMedicalRecordScreen(
 
                 if (patientCin.isBlank()) {
                     isLoading = false
-                    errorMessage = "Patient CIN not found"
+                    errorMessage = errCinNotFound
                     return@addOnSuccessListener
                 }
 
@@ -106,7 +111,7 @@ fun MyMedicalRecordScreen(
             CenterAlignedTopAppBar(
                  title = {
             Text(
-                text = "My Medical Record",
+                text = stringResource(R.string.my_medical_record),
                 fontWeight = FontWeight.Bold
             )
         },
@@ -114,7 +119,7 @@ fun MyMedicalRecordScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.back)
                     )
                 }
             },
@@ -159,7 +164,7 @@ fun MyMedicalRecordScreen(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
-                            text = "Health Summary",
+                            text = stringResource(R.string.health_summary),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -178,25 +183,25 @@ fun MyMedicalRecordScreen(
                         Column(modifier = Modifier.padding(20.dp)) {
 
                             Text(
-                                text = "Patient: ${patientFullName.ifBlank { "Patient" }}",
+                                text = stringResource(R.string.patient) + ": ${patientFullName.ifBlank { stringResource(R.string.patient) }}",
                                 fontWeight = FontWeight.Bold
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
                             MedicalInfoLine(
-                                label = "CIN",
+                                label = stringResource(R.string.cin_id_label),
                                 value = patientCin
                             )
 
                             MedicalInfoLine(
-                                label = "Blood Group",
-                                value = bloodGroup.ifBlank { "Not specified" }
+                                label = stringResource(R.string.blood_group),
+                                value = bloodGroup.ifBlank { stringResource(R.string.not_specified) }
                             )
 
                             MedicalInfoLine(
-                                label = "Chronic Diseases",
-                                value = chronicDiseases.ifBlank { "None" }
+                                label = stringResource(R.string.chronic_diseases),
+                                value = chronicDiseases.ifBlank { stringResource(R.string.none) }
                             )
                         }
                     }
@@ -213,7 +218,7 @@ fun MyMedicalRecordScreen(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
-                            text = "Medical Records",
+                            text = stringResource(R.string.medical_records),
                             style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                         )
@@ -230,7 +235,7 @@ fun MyMedicalRecordScreen(
                             )
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
-                                Text("No medical records found")
+                                Text(stringResource(R.string.no_records_found))
                             }
                         }
                     } else {
@@ -267,7 +272,7 @@ fun MedicalRecordCard(record: MedicalRecordItem) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "Diagnosis",
+                    text = stringResource(R.string.diagnosis),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -276,7 +281,7 @@ fun MedicalRecordCard(record: MedicalRecordItem) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = record.diagnosis.ifBlank { "No diagnosis" },
+                text = record.diagnosis.ifBlank { stringResource(R.string.no_diagnosis) },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -284,18 +289,18 @@ fun MedicalRecordCard(record: MedicalRecordItem) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Medical Notes:",
+                text = stringResource(R.string.medical_notes) + ":",
                 fontWeight = FontWeight.Bold
             )
-            Text(text = record.medicalNotes.ifBlank { "No notes" })
+            Text(text = record.medicalNotes.ifBlank { stringResource(R.string.no_notes) })
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Symptoms:",
+                text = stringResource(R.string.symptoms) + ":",
                 fontWeight = FontWeight.Bold
             )
-            Text(text = record.lastSymptoms.ifBlank { "No symptoms" })
+            Text(text = record.lastSymptoms.ifBlank { stringResource(R.string.no_symptoms) })
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -309,14 +314,14 @@ fun MedicalRecordCard(record: MedicalRecordItem) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "Prescription / Treatment",
+                    text = stringResource(R.string.prescription),
                     fontWeight = FontWeight.Bold
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = record.prescription.ifBlank { "No prescription" })
+            Text(text = record.prescription.ifBlank { stringResource(R.string.no_prescription) })
         }
     }
 }

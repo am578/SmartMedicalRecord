@@ -8,10 +8,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.Appointment
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -28,20 +31,22 @@ fun DoctorAppointmentsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFEFF7FF))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text("Appointments", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.appointments), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
         Button(onClick = onBackClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-            Text("Back")
+            Text(stringResource(R.string.back))
         }
 
         Spacer(Modifier.height(16.dp))
 
         if (appointments.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize()) { Text("No appointments found") }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
+                Text(stringResource(R.string.no_appointments_found), color = Color.Gray) 
+            }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(appointments) { appointment ->
@@ -93,27 +98,29 @@ fun AppointmentManagementCard(
     var suggestedTime by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
+    val errFieldsRequired = stringResource(R.string.err_suggest_fields_required)
+
     Card(
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(appointment.patientName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
-            Text("Date: ${appointment.date}")
-            Text("Time: ${appointment.time}")
-            Text("Status: ${appointment.status}")
+            Text(stringResource(R.string.date_label) + ": ${appointment.date}")
+            Text(stringResource(R.string.time_label) + ": ${appointment.time}")
+            Text(stringResource(R.string.status_label) + ": ${appointment.status}")
 
             if (showActions && appointment.status == "PENDING") {
                 Spacer(Modifier.height(14.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onAcceptClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
-                        Text("Accept")
+                        Text(stringResource(R.string.accept))
                     }
                     OutlinedButton(onClick = onRejectClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
-                        Text("Reject")
+                        Text(stringResource(R.string.reject))
                     }
                 }
 
@@ -124,7 +131,7 @@ fun AppointmentManagementCard(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Suggest another time")
+                    Text(stringResource(R.string.suggest_another_time))
                 }
 
                 if (showSuggestFields) {
@@ -132,14 +139,14 @@ fun AppointmentManagementCard(
 
                     OutlinedTextField(
                         value = suggestedDate, onValueChange = { suggestedDate = it; errorMessage = "" },
-                        label = { Text("Suggested Date") }, placeholder = { Text("YYYY-MM-DD") },
+                        label = { Text(stringResource(R.string.suggested_date)) }, placeholder = { Text("YYYY-MM-DD") },
                         modifier = Modifier.fillMaxWidth(), singleLine = true
                     )
                     Spacer(Modifier.height(8.dp))
 
                     OutlinedTextField(
                         value = suggestedTime, onValueChange = { suggestedTime = it; errorMessage = "" },
-                        label = { Text("Suggested Time") }, placeholder = { Text("10:00") },
+                        label = { Text(stringResource(R.string.suggested_time)) }, placeholder = { Text("10:00") },
                         modifier = Modifier.fillMaxWidth(), singleLine = true
                     )
 
@@ -153,7 +160,7 @@ fun AppointmentManagementCard(
                     Button(
                         onClick = {
                             if (suggestedDate.isBlank() || suggestedTime.isBlank()) {
-                                errorMessage = "Please enter suggested date and time"
+                                errorMessage = errFieldsRequired
                             } else {
                                 onSuggestClick(suggestedDate, suggestedTime)
                                 showSuggestFields = false; errorMessage = ""
@@ -162,7 +169,7 @@ fun AppointmentManagementCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Send Suggestion")
+                        Text(stringResource(R.string.send_suggestion))
                     }
                 }
             }

@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -27,10 +28,12 @@ fun LoginScreen(
     var loginError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
+    val errEnterEmailPassword = stringResource(R.string.enter_email_password)
+    val errLoginFailed = stringResource(R.string.login_failed)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // التعديل 1: نستعملو خلفية الثيم بدل اللون الثابت
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
@@ -39,7 +42,6 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(20.dp),
             shape = RoundedCornerShape(24.dp),
-            // التعديل 2: نستعملو surface الثيم (لي هي البيبي بلو في النهار والرمادي في الليل)
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -52,7 +54,6 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // التعديل 3: استبدال اللوجو بالجديد نتاعك logo_ai
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
@@ -67,18 +68,16 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Welcome Back",
+                    text = stringResource(R.string.welcome_back),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    // التعديل 4: لون النص يتبع الثيم (أبيض في الليل وأسود في النهار)
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Login to your account",
-                    // التعديل 5: نستعملو onSurfaceVariant للون الرمادي الذكي
+                    text = stringResource(R.string.login_subtitle),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
@@ -87,7 +86,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.email)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -100,7 +99,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -123,7 +122,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         if (email.isBlank() || password.isBlank()) {
-                            loginError = "Please enter email and password"
+                            loginError = errEnterEmailPassword
                             return@Button
                         }
                         isLoading = true
@@ -133,7 +132,7 @@ fun LoginScreen(
                             if (success) {
                                 onLoginSuccess()
                             } else {
-                                loginError = error ?: "Login failed"
+                                loginError = error ?: errLoginFailed
                             }
                         }
                     },
@@ -149,14 +148,14 @@ fun LoginScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Login")
+                        Text(stringResource(R.string.login))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 TextButton(onClick = onGoToRegister) {
-                    Text("Don't have an account? Register")
+                    Text(stringResource(R.string.no_account_register))
                 }
             }
         }

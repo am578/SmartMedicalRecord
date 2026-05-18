@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
 import com.example.medicalrecordapp.utils.LocalLanguage
 
@@ -32,7 +34,7 @@ fun AdminDashboardScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_dashboard), fontWeight = FontWeight.Bold) },
                 actions = {
                     LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
                     Spacer(Modifier.width(8.dp))
@@ -49,9 +51,27 @@ fun AdminDashboardScreen(
                 .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AdminActionCard("Staff List", "View all doctors and receptionists", Icons.Default.People, Color(0xFF2D7FF9), onManageUsersClick)
-            AdminActionCard("Create Account", "Add a new doctor or receptionist", Icons.Default.PersonAdd, Color(0xFF34A853), onCreateAccountClick)
-            AdminActionCard("Statistics", "View system activity and reports", Icons.Default.BarChart, Color(0xFF9C27B0), onStatisticsClick)
+            AdminActionCard(
+                stringResource(R.string.staff_list),
+                stringResource(R.string.staff_list_desc),
+                Icons.Default.People,
+                Color(0xFF2D7FF9),
+                onManageUsersClick
+            )
+            AdminActionCard(
+                stringResource(R.string.create_account),
+                stringResource(R.string.create_account_desc),
+                Icons.Default.PersonAdd,
+                Color(0xFF34A853),
+                onCreateAccountClick
+            )
+            AdminActionCard(
+                stringResource(R.string.statistics),
+                stringResource(R.string.statistics_desc),
+                Icons.Default.BarChart,
+                Color(0xFF9C27B0),
+                onStatisticsClick
+            )
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
@@ -60,7 +80,7 @@ fun AdminDashboardScreen(
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Logout")
+                Text(stringResource(R.string.logout))
             }
         }
     }

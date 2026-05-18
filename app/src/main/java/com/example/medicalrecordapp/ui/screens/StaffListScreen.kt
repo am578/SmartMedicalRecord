@@ -14,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.User
 import com.example.medicalrecordapp.domain.model.UserRole
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
@@ -45,10 +47,10 @@ fun StaffListScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Staff Members", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.staff_list), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -66,7 +68,7 @@ fun StaffListScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Search by name, CIN, or speciality") },
+                label = { Text(stringResource(R.string.search_staff_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -75,18 +77,18 @@ fun StaffListScreen(
             Spacer(Modifier.height(10.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = selectedRoleFilter == null, onClick = { selectedRoleFilter = null }, label = { Text("All") })
-                FilterChip(selected = selectedRoleFilter == UserRole.DOCTOR, onClick = { selectedRoleFilter = UserRole.DOCTOR }, label = { Text("Doctors") })
-                FilterChip(selected = selectedRoleFilter == UserRole.RECEPTIONIST, onClick = { selectedRoleFilter = UserRole.RECEPTIONIST }, label = { Text("Receptionists") })
+                FilterChip(selected = selectedRoleFilter == null, onClick = { selectedRoleFilter = null }, label = { Text(stringResource(R.string.all)) })
+                FilterChip(selected = selectedRoleFilter == UserRole.DOCTOR, onClick = { selectedRoleFilter = UserRole.DOCTOR }, label = { Text(stringResource(R.string.doctors)) })
+                FilterChip(selected = selectedRoleFilter == UserRole.RECEPTIONIST, onClick = { selectedRoleFilter = UserRole.RECEPTIONIST }, label = { Text(stringResource(R.string.receptionists)) })
             }
 
             Spacer(Modifier.height(8.dp))
-            Text("${filteredList.size} members", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+            Text("${filteredList.size} " + stringResource(R.string.members), color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
 
             if (filteredList.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No staff members found", color = Color.Gray)
+                    Text(stringResource(R.string.no_staff_found), color = Color.Gray)
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -146,7 +148,7 @@ private fun StaffCard(user: User, onDelete: () -> Unit) {
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Text(
-                        text = user.role.name,
+                        text = if (isDoctor) stringResource(R.string.doctor) else stringResource(R.string.receptionist),
                         color = roleColor,
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.labelSmall,
@@ -154,17 +156,17 @@ private fun StaffCard(user: User, onDelete: () -> Unit) {
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-                StaffInfoRow("CIN", user.cin)
-                StaffInfoRow("Age", if (user.age > 0) "${user.age} years" else "-")
-                StaffInfoRow("Gender", user.gender.replaceFirstChar { it.uppercase() })
-                StaffInfoRow("Phone", user.phone)
-                StaffInfoRow("Email", user.email)
-                if (isDoctor && user.speciality.isNotBlank()) StaffInfoRow("Speciality", user.speciality)
-                if (!isDoctor && user.officeNumber.isNotBlank()) StaffInfoRow("Office", user.officeNumber)
+                StaffInfoRow(stringResource(R.string.cin_id_label), user.cin)
+                StaffInfoRow(stringResource(R.string.age_label), if (user.age > 0) "${user.age} " + stringResource(R.string.years) else "-")
+                StaffInfoRow(stringResource(R.string.gender_label), if (user.gender.lowercase() == "male") stringResource(R.string.male) else stringResource(R.string.female))
+                StaffInfoRow(stringResource(R.string.phone_label), user.phone)
+                StaffInfoRow(stringResource(R.string.email_label), user.email)
+                if (isDoctor && user.speciality.isNotBlank()) StaffInfoRow(stringResource(R.string.speciality_label), user.speciality)
+                if (!isDoctor && user.officeNumber.isNotBlank()) StaffInfoRow(stringResource(R.string.office_label), user.officeNumber)
             }
 
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color.Red)
             }
         }
     }

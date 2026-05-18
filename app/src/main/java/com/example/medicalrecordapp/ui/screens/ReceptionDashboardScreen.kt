@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.ui.components.LanguageSwitcherButton
 import com.example.medicalrecordapp.utils.LocalLanguage
 
@@ -33,7 +35,7 @@ fun ReceptionDashboardScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Reception", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.reception), fontWeight = FontWeight.Bold) },
                 actions = {
                     LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)
                     Spacer(Modifier.width(8.dp))
@@ -50,10 +52,34 @@ fun ReceptionDashboardScreen(
                 .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ReceptionCard("Register Patient", "Add a new patient to the system", Icons.Default.PersonAdd, Color(0xFF34A853), onRegisterPatientClick)
-            ReceptionCard("Patients List", "Browse and search all patients", Icons.Default.People, Color(0xFF2D7FF9), onPatientsClick)
-            ReceptionCard("Appointments", "View scheduled appointments", Icons.Default.CalendarToday, Color(0xFF9C27B0), onAppointmentsClick)
-            ReceptionCard("Appointment Requests", "Manage pending requests", Icons.Default.Pending, Color(0xFFF4A700), onRequestsClick)
+            ReceptionCard(
+                stringResource(R.string.register_patient),
+                stringResource(R.string.add_patient_desc),
+                Icons.Default.PersonAdd,
+                Color(0xFF34A853),
+                onRegisterPatientClick
+            )
+            ReceptionCard(
+                stringResource(R.string.patients_list),
+                stringResource(R.string.browse_patients_desc),
+                Icons.Default.People,
+                Color(0xFF2D7FF9),
+                onPatientsClick
+            )
+            ReceptionCard(
+                stringResource(R.string.appointments),
+                stringResource(R.string.view_scheduled_desc),
+                Icons.Default.CalendarToday,
+                Color(0xFF9C27B0),
+                onAppointmentsClick
+            )
+            ReceptionCard(
+                stringResource(R.string.appointment_requests),
+                stringResource(R.string.manage_requests_desc),
+                Icons.Default.Pending,
+                Color(0xFFF4A700),
+                onRequestsClick
+            )
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),
@@ -62,7 +88,7 @@ fun ReceptionDashboardScreen(
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Logout")
+                Text(stringResource(R.string.logout))
             }
         }
     }
