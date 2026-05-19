@@ -12,10 +12,10 @@ import com.example.medicalrecordapp.R
 
 @Composable
 fun DoctorDashboardScreen(
-    onPatientsClick: () -> Unit,
-    onAppointmentsClick: () -> Unit,
+    onPatientsClick: () -> Unit = {},
+    onAppointmentsClick: () -> Unit = {},
     onLanguageChange: (String) -> Unit = {},
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -26,7 +26,7 @@ fun DoctorDashboardScreen(
     ) {
         DashboardHeader(
             title = stringResource(id = R.string.doctor_dashboard),
-            subtitle = "Welcome Doctor", // You can add this to strings.xml too
+            subtitle = "Welcome Doctor",
             onLanguageChange = onLanguageChange
         )
 
@@ -47,7 +47,7 @@ fun DoctorDashboardScreen(
                 SmallStatCard(
                     icon = "📋",
                     title = "Pending: 3",
-                    subtitle = "Needs Attention",
+                    subtitle = stringResource(id = R.string.appointments),
                     iconColor = PrimaryGreen
                 )
             }
@@ -56,7 +56,7 @@ fun DoctorDashboardScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         MainDashboardCard(
-            icon = "👤",
+            icon = "👥",
             title = stringResource(id = R.string.my_patients),
             description = stringResource(id = R.string.my_patients_desc),
             buttonText = stringResource(id = R.string.patients_list),
@@ -71,21 +71,9 @@ fun DoctorDashboardScreen(
             icon = "📅",
             title = stringResource(id = R.string.appointments),
             description = stringResource(id = R.string.appointments_desc),
-            buttonText = stringResource(id = R.string.view_appointments_desc),
+            buttonText = "View all your scheduled appointments",
             onClick = onAppointmentsClick,
             iconColor = PrimaryGreen,
-            buttonColor = PrimaryBlue
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        MainDashboardCard(
-            icon = "📁",
-            title = stringResource(id = R.string.medical_records),
-            description = stringResource(id = R.string.access_history_desc),
-            buttonText = stringResource(id = R.string.my_medical_record),
-            onClick = onPatientsClick,
-            iconColor = PrimaryBlue,
             buttonColor = PrimaryBlue
         )
 

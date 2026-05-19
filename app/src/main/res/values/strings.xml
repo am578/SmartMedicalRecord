@@ -7,6 +7,8 @@
     <string name="view_appointments_desc">View all your scheduled appointments</string>
     <string name="my_medical_record">My Medical Record</string>
     <string name="access_history_desc">Access your full medical history</string>
+    <string name="submit_symptoms">Submit Symptoms</string>
+    <string name="submit_symptoms_desc">Send your current symptoms to your doctor</string>
     <string name="logout">Logout</string>
 
     <string name="doctor_name">Doctor Name</string>
@@ -199,4 +201,31 @@
     <string name="payment_label">Payment</string>
     <string name="confirm_and_pay">Confirm and Pay</string>
     <string name="failed_load_appointments">Failed to load appointments</string>
+
+    <string name="patient_symptoms">Patient Symptoms</string>
+    <string name="no_symptoms_submitted">No symptoms submitted yet</string>
+    <string name="unknown">Unknown</string>
+    <string name="symptoms_label">Symptoms:</string>
+    <string name="attached_image">Attached Image:</string>
+    <string name="tap_to_open_image">Tap to open full image</string>
+    <string name="tap_to_open">Tap to open</string>
+
+    <string name="describe_symptoms">Describe your symptoms</string>
+    <string name="describe_symptoms_placeholder">Describe what you feel, since when, any details...</string>
+    <string name="symptoms_submitted_success">Symptoms submitted! Your doctor will review them.</string>
+    <string name="err_describe_first">Please describe your symptoms first</string>
+    <string name="err_submit_failed">Failed to submit symptoms</string>
+    <string name="view_symptoms_desc">Review symptoms submitted by patients</string>
+
+    <!-- Translatable dynamic values -->
+    <string name="status_pending">Pending</string>
+    <string name="status_accepted">Accepted</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_suggested">Suggested</string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_confirmed">Confirmed</string>
+    <string name="status_cancelled">Cancelled</string>
+
+    <string name="payment_paid">Paid</string>
+    <string name="payment_unpaid">Unpaid</string>
 </resources>

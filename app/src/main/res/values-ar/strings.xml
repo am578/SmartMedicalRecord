@@ -39,36 +39,4 @@
     <string name="no_account_register">ليس لديك حساب؟ سجل الآن</string>
     <string name="enter_email_password">يرجى إدخال البريد الإلكتروني وكلمة المرور</string>
     <string name="login_failed">فشل تسجيل الدخول</string>
-
-    <string name="admin_dashboard">لوحة تحكم المدير</string>
-    <string name="welcome_admin">مرحباً بك، المدير</string>
-    <string name="system_overview">نظرة عامة على النظام</string>
-    <string name="system_overview_desc">إدارة المستخدمين ومراقبة النشاط وتنظيم النظام الصحي.</string>
-    <string name="overview">نظرة عامة</string>
-    <string name="users">المستخدمين</string>
-    <string name="reports">التقارير</string>
-    <string name="users_management">إدارة المستخدمين</string>
-    <string name="users_management_desc">إضافة ومراجعة وتنظيم مستخدمي النظام بكفاءة.</string>
-    <string name="view_staff_list">عرض قائمة الموظفين</string>
-    <string name="create_account">إنشاء حساب</string>
-    <string name="create_account_desc_admin">إنشاء حسابات للأطباء أو موظفي الاستقبال.</string>
-    <string name="create_staff_btn">إنشاء طبيب / موظف استقبال</string>
-    <string name="system_statistics">إحصائيات النظام</string>
-    <string name="system_statistics_desc">عرض مؤشرات النشاط والإحصائيات العامة للمنصة.</string>
-    <string name="view_statistics">عرض الإحصائيات</string>
-
-    <string name="doctor_dashboard">لوحة تحكم الطبيب</string>
-    <string name="reception">الاستقبال</string>
-    <string name="register_patient">تسجيل مريض</string>
-    <string name="add_patient_desc">إضافة مريض جديد إلى النظام</string>
-    <string name="patients_list">قائمة المرضى</string>
-    <string name="browse_patients_desc">تصفح والبحث في جميع المرضى</string>
-    <string name="view_scheduled_desc">عرض المواعيد المجدولة</string>
-    <string name="appointment_requests">طلبات المواعيد</string>
-    <string name="manage_requests_desc">إدارة الطلبات المعلقة</string>
-    <string name="appointments">المواعيد</string>
-    <string name="my_patients">مرضاي</string>
-    <string name="my_patients_desc">عرض وإدارة قائمة المرضى الخاصة بك</string>
-    <string name="appointments_desc">التحقق من مواعيد اليوم والمواعيد القادمة</string>
-    <string name="medical_records">السجلات الطبية</string>
 </resources>

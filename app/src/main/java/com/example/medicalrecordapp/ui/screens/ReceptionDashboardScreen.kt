@@ -13,7 +13,6 @@ import com.example.medicalrecordapp.R
 @Composable
 fun ReceptionDashboardScreen(
     onRegisterPatientClick: () -> Unit,
-    onPatientsClick: () -> Unit,
     onAppointmentsClick: () -> Unit,
     onRequestsClick: () -> Unit,
     onLanguageChange: (String) -> Unit = {},
@@ -64,18 +63,6 @@ fun ReceptionDashboardScreen(
             buttonText = stringResource(id = R.string.register_patient),
             onClick = onRegisterPatientClick,
             iconColor = PrimaryBlue,
-            buttonColor = PrimaryBlue
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        MainDashboardCard(
-            icon = "👥",
-            title = stringResource(id = R.string.patients_list),
-            description = stringResource(id = R.string.browse_patients_desc),
-            buttonText = stringResource(id = R.string.patients_list),
-            onClick = onPatientsClick,
-            iconColor = PrimaryGreen,
             buttonColor = PrimaryBlue
         )
 

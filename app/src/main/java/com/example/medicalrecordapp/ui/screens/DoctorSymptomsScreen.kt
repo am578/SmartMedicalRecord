@@ -1,7 +1,6 @@
 package com.example.medicalrecordapp.ui.screens
 
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.*
@@ -20,9 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.AttachmentType
 import com.example.medicalrecordapp.domain.model.Symptom
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
@@ -42,9 +42,9 @@ fun DoctorSymptomsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Patient Symptoms", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.patient_symptoms), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -60,7 +60,7 @@ fun DoctorSymptomsScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Person, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(64.dp))
                     Spacer(Modifier.height(12.dp))
-                    Text("No symptoms submitted yet", color = Color.Gray)
+                    Text(stringResource(R.string.no_symptoms_submitted), color = Color.Gray)
                 }
             }
         } else {
@@ -92,9 +92,9 @@ private fun SymptomCard(symptom: Symptom) {
                     }
                     Spacer(Modifier.width(10.dp))
                     Column {
-                        Text(text = symptom.patientName.ifBlank { "Unknown" }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Text(text = symptom.patientName.ifBlank { stringResource(R.string.unknown) }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                         if (symptom.patientCin.isNotBlank())
-                            Text("CIN: ${symptom.patientCin}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                            Text(stringResource(R.string.cin_id_label) + ": ${symptom.patientCin}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                     }
                 }
                 Text(dateFormat.format(Date(symptom.createdAt)), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
@@ -102,7 +102,7 @@ private fun SymptomCard(symptom: Symptom) {
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
-            Text("Symptoms:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.symptoms_label), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(4.dp))
             Text(symptom.description, style = MaterialTheme.typography.bodyMedium)
 
@@ -113,7 +113,7 @@ private fun SymptomCard(symptom: Symptom) {
 
                 when (symptom.attachmentType) {
                     AttachmentType.IMAGE -> {
-                        Text("Attached Image:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.attached_image), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(6.dp))
                         AsyncImage(
                             model = symptom.attachmentUrl,
@@ -122,7 +122,7 @@ private fun SymptomCard(symptom: Symptom) {
                                 .clickable { uriHandler.openUri(symptom.attachmentUrl) },
                             contentScale = ContentScale.Crop
                         )
-                        Text("Tap to open full image", style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
+                        Text(stringResource(R.string.tap_to_open_image), style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
                     }
                     AttachmentType.FILE -> {
                         Row(
@@ -136,8 +136,8 @@ private fun SymptomCard(symptom: Symptom) {
                             }
                             Spacer(Modifier.width(10.dp))
                             Column {
-                                Text(symptom.attachmentName.ifBlank { "Attached File" }, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
-                                Text("Tap to open", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(symptom.attachmentName.ifBlank { stringResource(R.string.attached_file) }, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
+                                Text(stringResource(R.string.tap_to_open), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

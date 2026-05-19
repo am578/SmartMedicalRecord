@@ -215,8 +215,15 @@ fun PatientAppointmentCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            val paymentLabel = stringResource(R.string.payment_label)
+            val paymentValue = when(appointment.paymentStatus.uppercase()) {
+                "PAID" -> stringResource(R.string.payment_paid)
+                "UNPAID" -> stringResource(R.string.payment_unpaid)
+                else -> appointment.paymentStatus
+            }
+
             Text(
-                text = stringResource(R.string.payment_label) + ": ${appointment.paymentStatus}",
+                text = "$paymentLabel: $paymentValue",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -268,12 +275,23 @@ fun StatusBadge(status: String) {
         else -> Color.Gray
     }
 
+    val statusText = when (status.uppercase()) {
+        "PENDING" -> stringResource(R.string.status_pending)
+        "ACCEPTED" -> stringResource(R.string.status_accepted)
+        "REJECTED" -> stringResource(R.string.status_rejected)
+        "SUGGESTED" -> stringResource(R.string.status_suggested)
+        "WAITING" -> stringResource(R.string.status_waiting)
+        "CONFIRMED" -> stringResource(R.string.status_confirmed)
+        "CANCELLED" -> stringResource(R.string.status_cancelled)
+        else -> status
+    }
+
     Surface(
         color = badgeColor.copy(alpha = 0.1f),
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(
-            text = status,
+            text = statusText,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelMedium,
             color = badgeColor,

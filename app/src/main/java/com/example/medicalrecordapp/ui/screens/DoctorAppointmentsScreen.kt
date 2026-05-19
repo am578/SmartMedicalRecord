@@ -28,13 +28,15 @@ fun DoctorAppointmentsScreen(
 
     val db = FirebaseFirestore.getInstance()
 
+    val title = if (showActions) stringResource(R.string.appointment_requests) else stringResource(R.string.appointments)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text(stringResource(R.string.appointments), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
         Button(onClick = onBackClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
@@ -100,6 +102,17 @@ fun AppointmentManagementCard(
 
     val errFieldsRequired = stringResource(R.string.err_suggest_fields_required)
 
+    val statusText = when (appointment.status.uppercase()) {
+        "PENDING" -> stringResource(R.string.status_pending)
+        "ACCEPTED" -> stringResource(R.string.status_accepted)
+        "REJECTED" -> stringResource(R.string.status_rejected)
+        "SUGGESTED" -> stringResource(R.string.status_suggested)
+        "WAITING" -> stringResource(R.string.status_waiting)
+        "CONFIRMED" -> stringResource(R.string.status_confirmed)
+        "CANCELLED" -> stringResource(R.string.status_cancelled)
+        else -> appointment.status
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         shape = RoundedCornerShape(24.dp),
@@ -110,9 +123,9 @@ fun AppointmentManagementCard(
             Spacer(Modifier.height(6.dp))
             Text(stringResource(R.string.date_label) + ": ${appointment.date}")
             Text(stringResource(R.string.time_label) + ": ${appointment.time}")
-            Text(stringResource(R.string.status_label) + ": ${appointment.status}")
+            Text(stringResource(R.string.status_label) + ": $statusText")
 
-            if (showActions && appointment.status == "PENDING") {
+            if (showActions && (appointment.status == "PENDING" || appointment.status == "WAITING")) {
                 Spacer(Modifier.height(14.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

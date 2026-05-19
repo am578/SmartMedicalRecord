@@ -20,10 +20,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.activity.compose.BackHandler
+import com.example.medicalrecordapp.R
 import com.example.medicalrecordapp.domain.model.AttachmentType
 import com.example.medicalrecordapp.viewmodel.AuthViewModel
 
@@ -69,13 +71,19 @@ fun SubmitSymptomsScreen(
             if (selectedFileName.isBlank()) selectedFileName = "file_${System.currentTimeMillis()}"
         }
     }
+    
+    val errDescribeFirst = stringResource(R.string.err_describe_first)
+    val successSubmitted = stringResource(R.string.symptoms_submitted_success)
+    val errSubmitFailed = stringResource(R.string.err_submit_failed)
+
     BackHandler { onBackClick() }
+    
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Submit Symptoms", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.submit_symptoms), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -89,20 +97,20 @@ fun SubmitSymptomsScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp).verticalScroll(rememberScrollState())
         ) {
-            Text("Describe your symptoms", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.describe_symptoms), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
 
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                placeholder = { Text("Describe what you feel, since when, any details...") },
+                placeholder = { Text(stringResource(R.string.describe_symptoms_placeholder)) },
                 modifier = Modifier.fillMaxWidth().height(160.dp),
                 shape = RoundedCornerShape(12.dp),
                 maxLines = 8
             )
 
             Spacer(Modifier.height(20.dp))
-            Text("Attach a file (optional)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.attach_file), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -113,7 +121,7 @@ fun SubmitSymptomsScreen(
                 ) {
                     Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Image")
+                    Text(stringResource(R.string.image))
                 }
                 OutlinedButton(
                     onClick = { fileLauncher.launch("*/*") },
@@ -122,7 +130,7 @@ fun SubmitSymptomsScreen(
                 ) {
                     Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("File")
+                    Text(stringResource(R.string.file))
                 }
             }
 
@@ -153,7 +161,7 @@ fun SubmitSymptomsScreen(
                             Spacer(Modifier.width(8.dp))
                             Text(selectedFileName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             TextButton(onClick = { selectedUri = null; selectedFileName = ""; selectedType = AttachmentType.NONE }) {
-                                Text("Remove", color = Color.Red)
+                                Text(stringResource(R.string.remove), color = Color.Red)
                             }
                         }
                     }
@@ -180,7 +188,7 @@ fun SubmitSymptomsScreen(
 
             Button(
                 onClick = {
-                    if (description.isBlank()) { errorMessage = "Please describe your symptoms first"; return@Button }
+                    if (description.isBlank()) { errorMessage = errDescribeFirst; return@Button }
                     isLoading = true; successMessage = ""; errorMessage = ""
                     authViewModel.uploadSymptom(
                         description = description, fileUri = selectedUri,
@@ -188,10 +196,10 @@ fun SubmitSymptomsScreen(
                     ) { success, message ->
                         isLoading = false
                         if (success) {
-                            successMessage = "Symptoms submitted! Your doctor will review them."
+                            successMessage = successSubmitted
                             description = ""; selectedUri = null; selectedFileName = ""; selectedType = AttachmentType.NONE
                         } else {
-                            errorMessage = message ?: "Failed to submit symptoms"
+                            errorMessage = message ?: errSubmitFailed
                         }
                     }
                 },
@@ -204,7 +212,7 @@ fun SubmitSymptomsScreen(
                 } else {
                     Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Submit Symptoms")
+                    Text(stringResource(R.string.submit_symptoms))
                 }
             }
         }

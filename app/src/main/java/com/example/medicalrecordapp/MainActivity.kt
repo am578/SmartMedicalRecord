@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     val patients = remember { mutableStateListOf<Patient>() }
                     val appointments = remember { mutableStateListOf<Appointment>() }
 
-                    // زر الباك من الهاتف
+                    // زر الباك من الهاتف (System Back Button)
                     BackHandler(enabled = currentScreen != "login" && currentScreen != "loading") {
                         currentScreen = when (currentScreen) {
                             "admin_create_account" -> "admin_dashboard"
@@ -57,6 +57,9 @@ class MainActivity : ComponentActivity() {
                             "request_appointment" -> "patient_dashboard"
                             "patient_appointments" -> "patient_dashboard"
                             "my_medical_record" -> "patient_dashboard"
+                            "doctor_symptoms" -> "doctor_dashboard"
+                            "submit_symptoms" -> "patient_dashboard"
+                            "doctor_dashboard", "patient_dashboard", "admin_dashboard", "reception_dashboard" -> "login"
                             else -> "login"
                         }
                     }
@@ -164,6 +167,7 @@ private fun AppNavigation(
             onRequestAppointmentClick = { onScreenChange("request_appointment") },
             onMyAppointmentsClick = { onScreenChange("patient_appointments") },
             onMyRecordClick = { onScreenChange("my_medical_record") },
+            onSubmitSymptomsClick = { onScreenChange("submit_symptoms") },
             onLanguageChange = onLanguageChange,
             onLogoutClick = { authViewModel.logoutUser(); onScreenChange("login") }
         )
@@ -176,7 +180,6 @@ private fun AppNavigation(
         )
         "reception_dashboard" -> ReceptionDashboardScreen(
             onRegisterPatientClick = { onPreviousScreenChange("reception_dashboard"); onScreenChange("register_patient") },
-            onPatientsClick = { onPreviousScreenChange("reception_dashboard"); onScreenChange("patients_list") },
             onAppointmentsClick = { onPreviousScreenChange("reception_dashboard"); onScreenChange("doctor_appointments") },
             onRequestsClick = { onPreviousScreenChange("reception_dashboard"); onScreenChange("appointment_requests") },
             onLanguageChange = onLanguageChange,
@@ -208,5 +211,7 @@ private fun AppNavigation(
         "request_appointment" -> RequestAppointmentScreen(onBackClick = { onScreenChange("patient_dashboard") }, onSubmitClick = { _, _, _, _ -> onScreenChange("patient_appointments") })
         "patient_appointments" -> PatientAppointmentsScreen(appointments = appointments, onBackClick = { onScreenChange("patient_dashboard") })
         "my_medical_record" -> MyMedicalRecordScreen(onBackClick = { onScreenChange("patient_dashboard") })
+        "doctor_symptoms" -> DoctorSymptomsScreen(authViewModel = authViewModel, onBackClick = { onScreenChange("doctor_dashboard") })
+        "submit_symptoms" -> SubmitSymptomsScreen(authViewModel = authViewModel, onBackClick = { onScreenChange("patient_dashboard") })
     }
 }

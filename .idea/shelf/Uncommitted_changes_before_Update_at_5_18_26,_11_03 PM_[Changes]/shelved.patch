@@ -1,0 +1,678 @@
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/PatientAppointmentsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp.ui.screens\n\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.lazy.LazyColumn\nimport androidx.compose.foundation.lazy.items\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.AccessTime\nimport androidx.compose.material.icons.filled.ArrowBack\nimport androidx.compose.material.icons.filled.CalendarMonth\nimport androidx.compose.material.icons.filled.Person\nimport androidx.compose.material3.*\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.graphics.vector.ImageVector\nimport androidx.compose.ui.res.stringResource\nimport androidx.compose.ui.text.font.FontWeight\nimport androidx.compose.ui.unit.dp\nimport androidx.activity.compose.BackHandler\nimport com.example.medicalrecordapp.R\nimport com.example.medicalrecordapp.domain.model.Appointment\nimport com.google.firebase.auth.FirebaseAuth\nimport com.google.firebase.firestore.FirebaseFirestore\n\ndata class PatientAppointmentItem(\n    val documentId: String = \"\",\n    val patientName: String = \"\",\n    val doctorName: String = \"\",\n    val date: String = \"\",\n    val time: String = \"\",\n    val status: String = \"\",\n    val paymentStatus: String = \"\"\n)\n\n@OptIn(ExperimentalMaterial3Api::class)\n@Composable\nfun PatientAppointmentsScreen(\n    appointments: List<Appointment>,\n    onBackClick: () -> Unit = {}\n) {\n    val auth = FirebaseAuth.getInstance()\n    val db = FirebaseFirestore.getInstance()\n\n    val patientAppointments = remember { mutableStateListOf<PatientAppointmentItem>() }\n    var errorMessage by remember { mutableStateOf(\"\") }\n    var isLoading by remember { mutableStateOf(true) }\n\n    val errNotLoggedIn = stringResource(R.string.user_not_logged_in)\n    val errLoadFailed = stringResource(R.string.failed_load_appointments)\n\n    DisposableEffect(Unit) {\n        val patientId = auth.currentUser?.uid ?: \"\"\n\n        if (patientId.isBlank()) {\n            isLoading = false\n            errorMessage = errNotLoggedIn\n            onDispose { }\n        } else {\n            val listener = db.collection(\"appointments\")\n                .whereEqualTo(\"patientId\", patientId)\n                .addSnapshotListener { snapshot, error ->\n                    isLoading = false\n\n                    if (error != null) {\n                        errorMessage = error.message ?: errLoadFailed\n                        return@addSnapshotListener\n                    }\n\n                    patientAppointments.clear()\n\n                    snapshot?.documents?.forEach { document ->\n                        patientAppointments.add(\n                            PatientAppointmentItem(\n                                documentId = document.id,\n                                patientName = document.getString(\"patientName\") ?: \"\",\n                                doctorName = document.getString(\"doctorName\") ?: \"\",\n                                date = document.getString(\"date\") ?: \"\",\n                                time = document.getString(\"time\") ?: \"\",\n                                status = document.getString(\"status\") ?: \"PENDING\",\n                                paymentStatus = document.getString(\"paymentStatus\") ?: \"UNPAID\"\n                            )\n                        )\n                    }\n                }\n\n            onDispose {\n                listener.remove()\n            }\n        }\n    }\n    BackHandler { onBackClick() }\n    Scaffold(\n        topBar = {\n            CenterAlignedTopAppBar(\n                title = { Text(stringResource(R.string.my_appointments), fontWeight = FontWeight.Bold) },\n                navigationIcon = {\n                    IconButton(onClick = onBackClick) {\n                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))\n                    }\n                },\n                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(\n                    containerColor = MaterialTheme.colorScheme.primary,\n                    titleContentColor = MaterialTheme.colorScheme.onPrimary,\n                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary\n                )\n            )\n        },\n        containerColor = MaterialTheme.colorScheme.background\n             ) { padding ->\n        Column(\n            modifier = Modifier\n                .fillMaxSize()\n                .padding(padding)\n                .padding(16.dp)\n        ) {\n            when {\n                isLoading -> {\n                    Box(\n                        modifier = Modifier.fillMaxSize(),\n                        contentAlignment = Alignment.Center\n                    ) {\n                        CircularProgressIndicator()\n                    }\n                }\n\n                errorMessage.isNotEmpty() -> {\n                    Box(\n                        modifier = Modifier.fillMaxSize(),\n                        contentAlignment = Alignment.Center\n                    ) {\n                        Text(errorMessage, color = MaterialTheme.colorScheme.error)\n                    }\n                }\n\n                patientAppointments.isEmpty() -> {\n                    Box(\n                        modifier = Modifier.fillMaxSize(),\n                        contentAlignment = Alignment.Center\n                    ) {\n                        Text(\n                            stringResource(R.string.no_appointments_found),\n                            color = MaterialTheme.colorScheme.onSurfaceVariant\n                        )\n                    }\n                }\n\n                else -> {\n                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {\n                        items(patientAppointments) { appointment ->\n                            PatientAppointmentCard(\n                                appointment = appointment,\n                                onConfirmAndPayClick = {\n                                    db.collection(\"appointments\")\n                                        .document(appointment.documentId)\n                                        .update(\n                                            mapOf(\n                                                \"status\" to \"CONFIRMED\",\n                                                \"paymentStatus\" to \"PAID\"\n                                            )\n                                        )\n                                }\n                            )\n                        }\n                    }\n                }\n            }\n        }\n    }\n}\n\n@Composable\nfun PatientAppointmentCard(\n    appointment: PatientAppointmentItem,\n    onConfirmAndPayClick: () -> Unit\n) {\n    Card(\n        modifier = Modifier.fillMaxWidth(),\n        shape = RoundedCornerShape(24.dp),\n        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),\n        elevation = CardDefaults.cardElevation(2.dp)\n    ) {\n        Column(modifier = Modifier.padding(20.dp)) {\n            Row(verticalAlignment = Alignment.CenterVertically) {\n                Icon(\n                    Icons.Default.Person,\n                    contentDescription = null,\n                    tint = MaterialTheme.colorScheme.primary\n                )\n\n                Spacer(modifier = Modifier.width(8.dp))\n\n                Text(\n                    text = appointment.doctorName.ifBlank { stringResource(R.string.doctor) },\n                    style = MaterialTheme.typography.titleMedium,\n                    fontWeight = FontWeight.Bold\n                )\n\n                Spacer(modifier = Modifier.weight(1f))\n\n                StatusBadge(status = appointment.status)\n            }\n\n            HorizontalDivider(\n                modifier = Modifier.padding(vertical = 12.dp),\n                thickness = 0.5.dp,\n                color = MaterialTheme.colorScheme.outlineVariant\n            )\n\n            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {\n                InfoRow(icon = Icons.Default.CalendarMonth, text = appointment.date)\n                InfoRow(icon = Icons.Default.AccessTime, text = appointment.time)\n            }\n\n            Spacer(modifier = Modifier.height(8.dp))\n\n            Text(\n                text = stringResource(R.string.payment_label) + \": ${appointment.paymentStatus}\",\n                style = MaterialTheme.typography.bodyMedium,\n                color = MaterialTheme.colorScheme.onSurfaceVariant\n            )\n             if (\n            appointment.status == \"ACCEPTED\" ||\n                    appointment.status == \"SUGGESTED\"\n            ) {\n            Spacer(modifier = Modifier.height(12.dp))\n\n            Button(\n                onClick = onConfirmAndPayClick,\n                modifier = Modifier.fillMaxWidth(),\n                shape = RoundedCornerShape(12.dp)\n            ) {\n                Text(stringResource(R.string.confirm_and_pay))\n            }\n        }\n        }\n    }\n}\n\n@Composable\nfun InfoRow(icon: ImageVector, text: String) {\n    Row(verticalAlignment = Alignment.CenterVertically) {\n        Icon(\n            icon,\n            contentDescription = null,\n            modifier = Modifier.size(16.dp),\n            tint = MaterialTheme.colorScheme.primary\n        )\n        Spacer(modifier = Modifier.width(4.dp))\n        Text(\n            text = text,\n            style = MaterialTheme.typography.bodyMedium,\n            color = MaterialTheme.colorScheme.onSurfaceVariant\n        )\n    }\n}\n\n@Composable\nfun StatusBadge(status: String) {\n    val badgeColor = when (status.uppercase()) {\n        \"CONFIRMED\" -> Color(0xFF4CAF50)\n        \"ACCEPTED\" -> Color(0xFF4CAF50)\n        \"PENDING\" -> MaterialTheme.colorScheme.primary\n        \"SUGGESTED\" -> Color(0xFFFF9800)\n        \"REJECTED\" -> Color(0xFFF44336)\n        \"CANCELLED\" -> Color(0xFFF44336)\n        else -> Color.Gray\n    }\n\n    Surface(\n        color = badgeColor.copy(alpha = 0.1f),\n        shape = RoundedCornerShape(8.dp)\n    ) {\n        Text(\n            text = status,\n            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),\n            style = MaterialTheme.typography.labelMedium,\n            color = badgeColor,\n            fontWeight = FontWeight.Bold\n        )\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/PatientAppointmentsScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/PatientAppointmentsScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/PatientAppointmentsScreen.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/PatientAppointmentsScreen.kt	(date 1779137000553)
+@@ -215,8 +215,15 @@
+ 
+             Spacer(modifier = Modifier.height(8.dp))
+ 
++            val paymentLabel = stringResource(R.string.payment_label)
++            val paymentValue = when(appointment.paymentStatus.uppercase()) {
++                "PAID" -> stringResource(R.string.payment_paid)
++                "UNPAID" -> stringResource(R.string.payment_unpaid)
++                else -> appointment.paymentStatus
++            }
++
+             Text(
+-                text = stringResource(R.string.payment_label) + ": ${appointment.paymentStatus}",
++                text = "$paymentLabel: $paymentValue",
+                 style = MaterialTheme.typography.bodyMedium,
+                 color = MaterialTheme.colorScheme.onSurfaceVariant
+             )
+@@ -268,12 +275,23 @@
+         else -> Color.Gray
+     }
+ 
++    val statusText = when (status.uppercase()) {
++        "PENDING" -> stringResource(R.string.status_pending)
++        "ACCEPTED" -> stringResource(R.string.status_accepted)
++        "REJECTED" -> stringResource(R.string.status_rejected)
++        "SUGGESTED" -> stringResource(R.string.status_suggested)
++        "WAITING" -> stringResource(R.string.status_waiting)
++        "CONFIRMED" -> stringResource(R.string.status_confirmed)
++        "CANCELLED" -> stringResource(R.string.status_cancelled)
++        else -> status
++    }
++
+     Surface(
+         color = badgeColor.copy(alpha = 0.1f),
+         shape = RoundedCornerShape(8.dp)
+     ) {
+         Text(
+-            text = status,
++            text = statusText,
+             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+             style = MaterialTheme.typography.labelMedium,
+             color = badgeColor,
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorAppointmentsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp.ui.screens\n\nimport androidx.activity.compose.BackHandler\nimport androidx.compose.foundation.background\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.lazy.LazyColumn\nimport androidx.compose.foundation.lazy.items\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.material3.*\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.res.stringResource\nimport androidx.compose.ui.text.font.FontWeight\nimport androidx.compose.ui.unit.dp\nimport com.example.medicalrecordapp.R\nimport com.example.medicalrecordapp.domain.model.Appointment\nimport com.google.firebase.firestore.FirebaseFirestore\n\n@Composable\nfun DoctorAppointmentsScreen(\n    appointments: List<Appointment>,\n    showActions: Boolean = false,\n    onBackClick: () -> Unit = {}\n) {\n    BackHandler { onBackClick() }\n\n    val db = FirebaseFirestore.getInstance()\n\n    Column(\n        modifier = Modifier\n            .fillMaxSize()\n            .background(MaterialTheme.colorScheme.background)\n            .padding(16.dp)\n    ) {\n        Text(stringResource(R.string.appointments), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)\n        Spacer(Modifier.height(16.dp))\n\n        Button(onClick = onBackClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {\n            Text(stringResource(R.string.back))\n        }\n\n        Spacer(Modifier.height(16.dp))\n\n        if (appointments.isEmpty()) {\n            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { \n                Text(stringResource(R.string.no_appointments_found), color = Color.Gray) \n            }\n        } else {\n            LazyColumn(modifier = Modifier.fillMaxSize()) {\n                items(appointments) { appointment ->\n                    AppointmentManagementCard(\n                        appointment = appointment,\n                        showActions = showActions,\n                        onAcceptClick = {\n                            if (appointment.documentId.isNotBlank()) {\n                                db.collection(\"appointments\").document(appointment.documentId)\n                                    .update(mapOf(\"status\" to \"ACCEPTED\", \"paymentStatus\" to \"UNPAID\"))\n                            }\n                        },\n                        onRejectClick = {\n                            if (appointment.documentId.isNotBlank()) {\n                                db.collection(\"appointments\").document(appointment.documentId)\n                                    .update(mapOf(\"status\" to \"REJECTED\", \"paymentStatus\" to \"UNPAID\"))\n                            }\n                        },\n                        onSuggestClick = { suggestedDate, suggestedTime ->\n                            if (appointment.documentId.isNotBlank()) {\n                                db.collection(\"appointments\").document(appointment.documentId)\n                                    .update(mapOf(\n                                        \"status\" to \"SUGGESTED\",\n                                        \"date\" to suggestedDate,\n                                        \"time\" to suggestedTime,\n                                        \"suggestedDate\" to suggestedDate,\n                                        \"suggestedTime\" to suggestedTime,\n                                        \"paymentStatus\" to \"UNPAID\"\n                                    ))\n                            }\n                        }\n                    )\n                }\n            }\n        }\n    }\n}\n\n@Composable\nfun AppointmentManagementCard(\n    appointment: Appointment,\n    showActions: Boolean,\n    onAcceptClick: () -> Unit,\n    onRejectClick: () -> Unit,\n    onSuggestClick: (String, String) -> Unit\n) {\n    var showSuggestFields by remember { mutableStateOf(false) }\n    var suggestedDate by remember { mutableStateOf(\"\") }\n    var suggestedTime by remember { mutableStateOf(\"\") }\n    var errorMessage by remember { mutableStateOf(\"\") }\n\n    val errFieldsRequired = stringResource(R.string.err_suggest_fields_required)\n\n    Card(\n        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),\n        shape = RoundedCornerShape(24.dp),\n        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)\n    ) {\n        Column(modifier = Modifier.padding(16.dp)) {\n            Text(appointment.patientName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)\n            Spacer(Modifier.height(6.dp))\n            Text(stringResource(R.string.date_label) + \": ${appointment.date}\")\n            Text(stringResource(R.string.time_label) + \": ${appointment.time}\")\n            Text(stringResource(R.string.status_label) + \": ${appointment.status}\")\n\n            if (showActions && appointment.status == \"PENDING\") {\n                Spacer(Modifier.height(14.dp))\n\n                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                    Button(onClick = onAcceptClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {\n                        Text(stringResource(R.string.accept))\n                    }\n                    OutlinedButton(onClick = onRejectClick, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {\n                        Text(stringResource(R.string.reject))\n                    }\n                }\n\n                Spacer(Modifier.height(8.dp))\n\n                OutlinedButton(\n                    onClick = { showSuggestFields = !showSuggestFields; errorMessage = \"\" },\n                    modifier = Modifier.fillMaxWidth(),\n                    shape = RoundedCornerShape(12.dp)\n                ) {\n                    Text(stringResource(R.string.suggest_another_time))\n                }\n\n                if (showSuggestFields) {\n                    Spacer(Modifier.height(12.dp))\n\n                    OutlinedTextField(\n                        value = suggestedDate, onValueChange = { suggestedDate = it; errorMessage = \"\" },\n                        label = { Text(stringResource(R.string.suggested_date)) }, placeholder = { Text(\"YYYY-MM-DD\") },\n                        modifier = Modifier.fillMaxWidth(), singleLine = true\n                    )\n                    Spacer(Modifier.height(8.dp))\n\n                    OutlinedTextField(\n                        value = suggestedTime, onValueChange = { suggestedTime = it; errorMessage = \"\" },\n                        label = { Text(stringResource(R.string.suggested_time)) }, placeholder = { Text(\"10:00\") },\n                        modifier = Modifier.fillMaxWidth(), singleLine = true\n                    )\n\n                    if (errorMessage.isNotEmpty()) {\n                        Spacer(Modifier.height(8.dp))\n                        Text(errorMessage, color = MaterialTheme.colorScheme.error)\n                    }\n\n                    Spacer(Modifier.height(8.dp))\n\n                    Button(\n                        onClick = {\n                            if (suggestedDate.isBlank() || suggestedTime.isBlank()) {\n                                errorMessage = errFieldsRequired\n                            } else {\n                                onSuggestClick(suggestedDate, suggestedTime)\n                                showSuggestFields = false; errorMessage = \"\"\n                            }\n                        },\n                        modifier = Modifier.fillMaxWidth(),\n                        shape = RoundedCornerShape(12.dp)\n                    ) {\n                        Text(stringResource(R.string.send_suggestion))\n                    }\n                }\n            }\n        }\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorAppointmentsScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorAppointmentsScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorAppointmentsScreen.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorAppointmentsScreen.kt	(date 1779137162777)
+@@ -28,13 +28,15 @@
+ 
+     val db = FirebaseFirestore.getInstance()
+ 
++    val title = if (showActions) stringResource(R.string.appointment_requests) else stringResource(R.string.appointments)
++
+     Column(
+         modifier = Modifier
+             .fillMaxSize()
+             .background(MaterialTheme.colorScheme.background)
+             .padding(16.dp)
+     ) {
+-        Text(stringResource(R.string.appointments), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
++        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+         Spacer(Modifier.height(16.dp))
+ 
+         Button(onClick = onBackClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+@@ -100,6 +102,17 @@
+ 
+     val errFieldsRequired = stringResource(R.string.err_suggest_fields_required)
+ 
++    val statusText = when (appointment.status.uppercase()) {
++        "PENDING" -> stringResource(R.string.status_pending)
++        "ACCEPTED" -> stringResource(R.string.status_accepted)
++        "REJECTED" -> stringResource(R.string.status_rejected)
++        "SUGGESTED" -> stringResource(R.string.status_suggested)
++        "WAITING" -> stringResource(R.string.status_waiting)
++        "CONFIRMED" -> stringResource(R.string.status_confirmed)
++        "CANCELLED" -> stringResource(R.string.status_cancelled)
++        else -> appointment.status
++    }
++
+     Card(
+         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+         shape = RoundedCornerShape(24.dp),
+@@ -110,9 +123,9 @@
+             Spacer(Modifier.height(6.dp))
+             Text(stringResource(R.string.date_label) + ": ${appointment.date}")
+             Text(stringResource(R.string.time_label) + ": ${appointment.time}")
+-            Text(stringResource(R.string.status_label) + ": ${appointment.status}")
++            Text(stringResource(R.string.status_label) + ": $statusText")
+ 
+-            if (showActions && appointment.status == "PENDING") {
++            if (showActions && (appointment.status == "PENDING" || appointment.status == "WAITING")) {
+                 Spacer(Modifier.height(14.dp))
+ 
+                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorDashboardScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp.ui.screens\n\nimport androidx.compose.foundation.background\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.rememberScrollState\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.foundation.verticalScroll\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.*\nimport androidx.compose.material3.*\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.graphics.vector.ImageVector\nimport androidx.compose.ui.res.stringResource\nimport androidx.compose.ui.text.font.FontWeight\nimport androidx.compose.ui.unit.dp\nimport com.example.medicalrecordapp.R\nimport com.example.medicalrecordapp.ui.components.LanguageSwitcherButton\nimport com.example.medicalrecordapp.utils.LocalLanguage\n\n@OptIn(ExperimentalMaterial3Api::class)\n@Composable\nfun DoctorDashboardScreen(\n    onPatientsClick: () -> Unit = {},\n    onAppointmentsClick: () -> Unit = {},\n    onLanguageChange: (String) -> Unit = {},\n    onLogoutClick: () -> Unit = {}\n) {\n    val currentLang = LocalLanguage.current.value\n\n    Scaffold(\n        topBar = {\n            CenterAlignedTopAppBar(\n                title = { Text(stringResource(R.string.doctor_dashboard), fontWeight = FontWeight.Bold) },\n                actions = {\n                    LanguageSwitcherButton(currentLang = currentLang, onLanguageChange = onLanguageChange)\n                    Spacer(Modifier.width(8.dp))\n                },\n                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(\n                    containerColor = MaterialTheme.colorScheme.primary,\n                    titleContentColor = MaterialTheme.colorScheme.onPrimary\n                )\n            )\n        }\n    ) { padding ->\n        Column(\n            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)\n                .padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),\n            verticalArrangement = Arrangement.spacedBy(14.dp)\n        ) {\n            DashboardActionCard(\n                stringResource(R.string.my_patients),\n                stringResource(R.string.my_patients_desc),\n                Icons.Default.People,\n                Color(0xFF2D7FF9),\n                onPatientsClick\n            )\n            DashboardActionCard(\n                stringResource(R.string.appointments),\n                stringResource(R.string.appointments_desc),\n                Icons.Default.CalendarToday,\n                Color(0xFF34A853),\n                onAppointmentsClick\n            )\n\n            Spacer(Modifier.height(8.dp))\n            Button(\n                onClick = onLogoutClick, modifier = Modifier.fillMaxWidth(),\n                shape = RoundedCornerShape(14.dp),\n                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))\n            ) {\n                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))\n                Spacer(Modifier.width(8.dp))\n                Text(stringResource(R.string.logout))\n            }\n        }\n    }\n}\n\n@Composable\nprivate fun DashboardActionCard(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit) {\n    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), elevation = CardDefaults.cardElevation(2.dp)) {\n        Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {\n            Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(52.dp)) {\n                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {\n                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))\n                }\n            }\n            Spacer(Modifier.width(16.dp))\n            Column {\n                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)\n                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.bodySmall)\n            }\n        }\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorDashboardScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorDashboardScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorDashboardScreen.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorDashboardScreen.kt	(date 1779136471297)
+@@ -25,6 +25,7 @@
+ fun DoctorDashboardScreen(
+     onPatientsClick: () -> Unit = {},
+     onAppointmentsClick: () -> Unit = {},
++    onSymptomsClick: () -> Unit = {},
+     onLanguageChange: (String) -> Unit = {},
+     onLogoutClick: () -> Unit = {}
+ ) {
+@@ -64,6 +65,13 @@
+                 Color(0xFF34A853),
+                 onAppointmentsClick
+             )
++            DashboardActionCard(
++                stringResource(R.string.patient_symptoms),
++                stringResource(R.string.view_symptoms_desc),
++                Icons.Default.ListAlt,
++                Color(0xFFFF9800),
++                onSymptomsClick
++            )
+ 
+             Spacer(Modifier.height(8.dp))
+             Button(
+Index: app/src/main/java/com/example/medicalrecordapp/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp\n\nimport android.content.Context\nimport android.os.Bundle\nimport androidx.activity.ComponentActivity\nimport androidx.activity.compose.BackHandler\nimport androidx.activity.compose.setContent\nimport androidx.compose.foundation.layout.Box\nimport androidx.compose.foundation.layout.fillMaxSize\nimport androidx.compose.material3.CircularProgressIndicator\nimport androidx.compose.runtime.*\nimport androidx.compose.runtime.snapshots.SnapshotStateList\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport com.example.medicalrecordapp.domain.model.Appointment\nimport com.example.medicalrecordapp.domain.model.Patient\nimport com.example.medicalrecordapp.ui.screens.*\nimport com.example.medicalrecordapp.ui.theme.MedicalRecordAppTheme\nimport com.example.medicalrecordapp.utils.LanguageManager\nimport com.example.medicalrecordapp.utils.LocalLanguage\nimport com.example.medicalrecordapp.viewmodel.AuthViewModel\nimport com.google.firebase.firestore.FirebaseFirestore\n\nclass MainActivity : ComponentActivity() {\n\n    override fun attachBaseContext(newBase: Context) {\n        super.attachBaseContext(LanguageManager.wrapContext(newBase))\n    }\n\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n\n        setContent {\n            val authViewModel = remember { AuthViewModel(application) }\n            val languageState = remember { mutableStateOf(LanguageManager.getSavedLanguage(this)) }\n\n            CompositionLocalProvider(LocalLanguage provides languageState) {\n                MedicalRecordAppTheme {\n\n                    var currentScreen by remember { mutableStateOf(\"loading\") }\n                    var previousScreen by remember { mutableStateOf(\"\") }\n                    var selectedPatient by remember { mutableStateOf<Patient?>(null) }\n                    val patients = remember { mutableStateListOf<Patient>() }\n                    val appointments = remember { mutableStateListOf<Appointment>() }\n\n                    // زر الباك من الهاتف\n                    BackHandler(enabled = currentScreen != \"login\" && currentScreen != \"loading\") {\n                        currentScreen = when (currentScreen) {\n                            \"admin_create_account\" -> \"admin_dashboard\"\n                            \"staff_list\" -> \"admin_dashboard\"\n                            \"register\" -> \"login\"\n                            \"patients_list\" -> previousScreen.ifBlank { \"reception_dashboard\" }\n                            \"patient_details\" -> \"patients_list\"\n                            \"doctor_appointments\" -> previousScreen.ifBlank { \"doctor_dashboard\" }\n                            \"appointment_requests\" -> \"reception_dashboard\"\n                            \"register_patient\" -> \"reception_dashboard\"\n                            \"request_appointment\" -> \"patient_dashboard\"\n                            \"patient_appointments\" -> \"patient_dashboard\"\n                            \"my_medical_record\" -> \"patient_dashboard\"\n                            else -> \"login\"\n                        }\n                    }\n\n                    DisposableEffect(Unit) {\n                        val db = FirebaseFirestore.getInstance()\n                        val patientsListener = db.collection(\"patients\").addSnapshotListener { snapshot, error ->\n                            if (error != null) return@addSnapshotListener\n                            patients.clear()\n                            snapshot?.documents?.forEachIndexed { index, document ->\n                                val ageValue = document.get(\"age\")\n                                val age = when (ageValue) {\n                                    is Long -> ageValue.toInt(); is Int -> ageValue\n                                    is String -> ageValue.toIntOrNull() ?: 0; else -> 0\n                                }\n                                patients.add(Patient(\n                                    id = index + 1,\n                                    firstName = document.getString(\"firstName\") ?: \"\",\n                                    lastName = document.getString(\"familyName\") ?: document.getString(\"lastName\") ?: \"\",\n                                    age = age,\n                                    gender = document.getString(\"gender\") ?: \"\",\n                                    phone = document.getString(\"phone\") ?: \"\",\n                                    cin = document.getString(\"cin\") ?: \"\",\n                                    dateOfBirth = document.getString(\"dateOfBirth\") ?: \"\",\n                                    address = document.getString(\"address\") ?: \"\",\n                                    bloodGroup = document.getString(\"bloodGroup\") ?: \"\",\n                                    chronicDiseases = document.getString(\"chronicDiseases\") ?: \"\",\n                                    documentId = document.id\n                                ))\n                            }\n                        }\n                        val appointmentsListener = db.collection(\"appointments\").addSnapshotListener { snapshot, error ->\n                            if (error != null) return@addSnapshotListener\n                            appointments.clear()\n                            snapshot?.documents?.forEachIndexed { index, document ->\n                                appointments.add(Appointment(\n                                    id = index + 1,\n                                    patientName = document.getString(\"patientName\") ?: \"\",\n                                    date = document.getString(\"date\") ?: \"\",\n                                    time = document.getString(\"time\") ?: \"\",\n                                    status = (document.getString(\"status\") ?: \"PENDING\").trim().uppercase(),\n                                    documentId = document.id\n                                ))\n                            }\n                        }\n                        onDispose { patientsListener.remove(); appointmentsListener.remove() }\n                    }\n\n                    LaunchedEffect(Unit) {\n                        if (authViewModel.isUserLoggedIn()) {\n                            authViewModel.getUserRole { role ->\n                                currentScreen = when (role) {\n                                    \"DOCTOR\" -> \"doctor_dashboard\"; \"ADMIN\" -> \"admin_dashboard\"\n                                    \"RECEPTIONIST\" -> \"reception_dashboard\"; else -> \"patient_dashboard\"\n                                }\n                            }\n                        } else currentScreen = \"login\"\n                    }\n\n                    AppNavigation(\n                        currentScreen = currentScreen, previousScreen = previousScreen,\n                        authViewModel = authViewModel, patients = patients, appointments = appointments,\n                        selectedPatient = selectedPatient,\n                        onScreenChange = { currentScreen = it },\n                        onPreviousScreenChange = { previousScreen = it },\n                        onPatientSelected = { selectedPatient = it },\n                        onLanguageChange = { lang ->\n                            LanguageManager.saveLanguage(this@MainActivity, lang)\n                            languageState.value = lang\n                            recreate()\n                        }\n                    )\n                }\n            }\n        }\n    }\n}\n\n@Composable\nprivate fun AppNavigation(\n    currentScreen: String, previousScreen: String,\n    authViewModel: AuthViewModel,\n    patients: SnapshotStateList<Patient>, appointments: SnapshotStateList<Appointment>,\n    selectedPatient: Patient?,\n    onScreenChange: (String) -> Unit, onPreviousScreenChange: (String) -> Unit,\n    onPatientSelected: (Patient?) -> Unit, onLanguageChange: (String) -> Unit\n) {\n    when (currentScreen) {\n        \"loading\" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }\n\n        \"login\" -> LoginScreen(\n            authViewModel = authViewModel,\n            onLoginSuccess = { authViewModel.getUserRole { role -> onScreenChange(when (role) { \"DOCTOR\" -> \"doctor_dashboard\"; \"ADMIN\" -> \"admin_dashboard\"; \"RECEPTIONIST\" -> \"reception_dashboard\"; else -> \"patient_dashboard\" }) } },\n            onGoToRegister = { onScreenChange(\"register\") }\n        )\n        \"register\" -> RegisterScreen(authViewModel = authViewModel, onRegisterSuccess = { onScreenChange(\"login\") }, onBackToLogin = { onScreenChange(\"login\") })\n\n        \"doctor_dashboard\" -> DoctorDashboardScreen(\n            onPatientsClick = { onPreviousScreenChange(\"doctor_dashboard\"); onScreenChange(\"patients_list\") },\n            onAppointmentsClick = { onPreviousScreenChange(\"doctor_dashboard\"); onScreenChange(\"doctor_appointments\") },\n            onLanguageChange = onLanguageChange,\n            onLogoutClick = { authViewModel.logoutUser(); onScreenChange(\"login\") }\n        )\n        \"patient_dashboard\" -> PatientDashboardScreen(\n            onRequestAppointmentClick = { onScreenChange(\"request_appointment\") },\n            onMyAppointmentsClick = { onScreenChange(\"patient_appointments\") },\n            onMyRecordClick = { onScreenChange(\"my_medical_record\") },\n            onLanguageChange = onLanguageChange,\n            onLogoutClick = { authViewModel.logoutUser(); onScreenChange(\"login\") }\n        )\n        \"admin_dashboard\" -> AdminDashboardScreen(\n            onManageUsersClick = { onScreenChange(\"staff_list\") },\n            onCreateAccountClick = { onScreenChange(\"admin_create_account\") },\n            onStatisticsClick = { },\n            onLanguageChange = onLanguageChange,\n            onLogoutClick = { authViewModel.logoutUser(); onScreenChange(\"login\") }\n        )\n        \"reception_dashboard\" -> ReceptionDashboardScreen(\n            onRegisterPatientClick = { onPreviousScreenChange(\"reception_dashboard\"); onScreenChange(\"register_patient\") },\n            onPatientsClick = { onPreviousScreenChange(\"reception_dashboard\"); onScreenChange(\"patients_list\") },\n            onAppointmentsClick = { onPreviousScreenChange(\"reception_dashboard\"); onScreenChange(\"doctor_appointments\") },\n            onRequestsClick = { onPreviousScreenChange(\"reception_dashboard\"); onScreenChange(\"appointment_requests\") },\n            onLanguageChange = onLanguageChange,\n            onLogoutClick = { authViewModel.logoutUser(); onScreenChange(\"login\") }\n        )\n        \"admin_create_account\" -> AdminCreateAccountScreen(authViewModel = authViewModel, onBackClick = { onScreenChange(\"admin_dashboard\") })\n        \"staff_list\" -> StaffListScreen(authViewModel = authViewModel, onBackClick = { onScreenChange(\"admin_dashboard\") })\n        \"register_patient\" -> RegisterPatientScreen(onBackClick = { onScreenChange(\"reception_dashboard\") }, onSaveClick = { _, _, _, _, _, _, _, _, _ -> onScreenChange(\"patients_list\") })\n        \"patients_list\" -> PatientsListScreen(\n            patients = patients,\n            onPatientClick = { patient -> \n                if (previousScreen == \"doctor_dashboard\") {\n                    onPatientSelected(patient)\n                    onPreviousScreenChange(\"patients_list\")\n                    onScreenChange(\"patient_details\")\n                }\n            },\n            onBackClick = { onScreenChange(previousScreen.ifBlank { \"reception_dashboard\" }) }\n        )\n        \"patient_details\" -> selectedPatient?.let { PatientDetailsScreen(patient = it, onBackClick = { onScreenChange(\"patients_list\") }) }\n        \"doctor_appointments\" -> DoctorAppointmentsScreen(\n            appointments = appointments.filter { val s = it.status.trim().uppercase(); s != \"PENDING\" && s != \"WAITING\" && s.isNotBlank() },\n            showActions = false, onBackClick = { onScreenChange(previousScreen.ifBlank { \"reception_dashboard\" }) }\n        )\n        \"appointment_requests\" -> DoctorAppointmentsScreen(\n            appointments = appointments.filter { val s = it.status.trim().uppercase(); s == \"PENDING\" || s == \"WAITING\" || s.isBlank() },\n            showActions = true, onBackClick = { onScreenChange(\"reception_dashboard\") }\n        )\n        \"request_appointment\" -> RequestAppointmentScreen(onBackClick = { onScreenChange(\"patient_dashboard\") }, onSubmitClick = { _, _, _, _ -> onScreenChange(\"patient_appointments\") })\n        \"patient_appointments\" -> PatientAppointmentsScreen(appointments = appointments, onBackClick = { onScreenChange(\"patient_dashboard\") })\n        \"my_medical_record\" -> MyMedicalRecordScreen(onBackClick = { onScreenChange(\"patient_dashboard\") })\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/MainActivity.kt b/app/src/main/java/com/example/medicalrecordapp/MainActivity.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/MainActivity.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/MainActivity.kt	(date 1779136421790)
+@@ -43,7 +43,7 @@
+                     val patients = remember { mutableStateListOf<Patient>() }
+                     val appointments = remember { mutableStateListOf<Appointment>() }
+ 
+-                    // زر الباك من الهاتف
++                    // زر الباك من الهاتف (System Back Button)
+                     BackHandler(enabled = currentScreen != "login" && currentScreen != "loading") {
+                         currentScreen = when (currentScreen) {
+                             "admin_create_account" -> "admin_dashboard"
+@@ -57,6 +57,9 @@
+                             "request_appointment" -> "patient_dashboard"
+                             "patient_appointments" -> "patient_dashboard"
+                             "my_medical_record" -> "patient_dashboard"
++                            "doctor_symptoms" -> "doctor_dashboard"
++                            "submit_symptoms" -> "patient_dashboard"
++                            "doctor_dashboard", "patient_dashboard", "admin_dashboard", "reception_dashboard" -> "login"
+                             else -> "login"
+                         }
+                     }
+@@ -157,6 +160,7 @@
+         "doctor_dashboard" -> DoctorDashboardScreen(
+             onPatientsClick = { onPreviousScreenChange("doctor_dashboard"); onScreenChange("patients_list") },
+             onAppointmentsClick = { onPreviousScreenChange("doctor_dashboard"); onScreenChange("doctor_appointments") },
++            onSymptomsClick = { onScreenChange("doctor_symptoms") },
+             onLanguageChange = onLanguageChange,
+             onLogoutClick = { authViewModel.logoutUser(); onScreenChange("login") }
+         )
+@@ -164,6 +168,7 @@
+             onRequestAppointmentClick = { onScreenChange("request_appointment") },
+             onMyAppointmentsClick = { onScreenChange("patient_appointments") },
+             onMyRecordClick = { onScreenChange("my_medical_record") },
++            onSubmitSymptomsClick = { onScreenChange("submit_symptoms") },
+             onLanguageChange = onLanguageChange,
+             onLogoutClick = { authViewModel.logoutUser(); onScreenChange("login") }
+         )
+@@ -208,5 +213,7 @@
+         "request_appointment" -> RequestAppointmentScreen(onBackClick = { onScreenChange("patient_dashboard") }, onSubmitClick = { _, _, _, _ -> onScreenChange("patient_appointments") })
+         "patient_appointments" -> PatientAppointmentsScreen(appointments = appointments, onBackClick = { onScreenChange("patient_dashboard") })
+         "my_medical_record" -> MyMedicalRecordScreen(onBackClick = { onScreenChange("patient_dashboard") })
++        "doctor_symptoms" -> DoctorSymptomsScreen(authViewModel = authViewModel, onBackClick = { onScreenChange("doctor_dashboard") })
++        "submit_symptoms" -> SubmitSymptomsScreen(authViewModel = authViewModel, onBackClick = { onScreenChange("patient_dashboard") })
+     }
+ }
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/SubmitSymptomsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp.ui.screens\n\nimport android.net.Uri\nimport androidx.activity.compose.rememberLauncherForActivityResult\nimport androidx.activity.result.contract.ActivityResultContracts\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.rememberScrollState\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.foundation.verticalScroll\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.ArrowBack\nimport androidx.compose.material.icons.filled.AttachFile\nimport androidx.compose.material.icons.filled.Image\nimport androidx.compose.material.icons.filled.Send\nimport androidx.compose.material3.*\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.draw.clip\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.layout.ContentScale\nimport androidx.compose.ui.platform.LocalContext\nimport androidx.compose.ui.text.font.FontWeight\nimport androidx.compose.ui.unit.dp\nimport coil.compose.AsyncImage\nimport androidx.activity.compose.BackHandler\nimport com.example.medicalrecordapp.domain.model.AttachmentType\nimport com.example.medicalrecordapp.viewmodel.AuthViewModel\n\n@OptIn(ExperimentalMaterial3Api::class)\n@Composable\nfun SubmitSymptomsScreen(\n    authViewModel: AuthViewModel,\n    onBackClick: () -> Unit\n) {\n    val context = LocalContext.current\n    var description by remember { mutableStateOf(\"\") }\n    var selectedUri by remember { mutableStateOf<Uri?>(null) }\n    var selectedFileName by remember { mutableStateOf(\"\") }\n    var selectedType by remember { mutableStateOf(AttachmentType.NONE) }\n    var isLoading by remember { mutableStateOf(false) }\n    var successMessage by remember { mutableStateOf(\"\") }\n    var errorMessage by remember { mutableStateOf(\"\") }\n\n    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->\n        if (uri != null) {\n            selectedUri = uri; selectedType = AttachmentType.IMAGE\n            val cursor = context.contentResolver.query(uri, null, null, null, null)\n            cursor?.use {\n                if (it.moveToFirst()) {\n                    val idx = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)\n                    if (idx >= 0) selectedFileName = it.getString(idx)\n                }\n            }\n            if (selectedFileName.isBlank()) selectedFileName = \"image_${System.currentTimeMillis()}.jpg\"\n        }\n    }\n\n    val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->\n        if (uri != null) {\n            selectedUri = uri; selectedType = AttachmentType.FILE\n            val cursor = context.contentResolver.query(uri, null, null, null, null)\n            cursor?.use {\n                if (it.moveToFirst()) {\n                    val idx = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)\n                    if (idx >= 0) selectedFileName = it.getString(idx)\n                }\n            }\n            if (selectedFileName.isBlank()) selectedFileName = \"file_${System.currentTimeMillis()}\"\n        }\n    }\n    BackHandler { onBackClick() }\n    Scaffold(\n        topBar = {\n            CenterAlignedTopAppBar(\n                title = { Text(\"Submit Symptoms\", fontWeight = FontWeight.Bold) },\n                navigationIcon = {\n                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = \"Back\") }\n                },\n                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(\n                    containerColor = MaterialTheme.colorScheme.primary,\n                    titleContentColor = MaterialTheme.colorScheme.onPrimary,\n                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary\n                )\n            )\n        }\n    ) { padding ->\n\n        Column(\n            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp).verticalScroll(rememberScrollState())\n        ) {\n            Text(\"Describe your symptoms\", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)\n            Spacer(Modifier.height(10.dp))\n\n            OutlinedTextField(\n                value = description,\n                onValueChange = { description = it },\n                placeholder = { Text(\"Describe what you feel, since when, any details...\") },\n                modifier = Modifier.fillMaxWidth().height(160.dp),\n                shape = RoundedCornerShape(12.dp),\n                maxLines = 8\n            )\n\n            Spacer(Modifier.height(20.dp))\n            Text(\"Attach a file (optional)\", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)\n            Spacer(Modifier.height(10.dp))\n\n            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {\n                OutlinedButton(\n                    onClick = { imageLauncher.launch(\"image/*\") },\n                    modifier = Modifier.weight(1f),\n                    shape = RoundedCornerShape(12.dp)\n                ) {\n                    Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))\n                    Spacer(Modifier.width(6.dp))\n                    Text(\"Image\")\n                }\n                OutlinedButton(\n                    onClick = { fileLauncher.launch(\"*/*\") },\n                    modifier = Modifier.weight(1f),\n                    shape = RoundedCornerShape(12.dp)\n                ) {\n                    Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))\n                    Spacer(Modifier.width(6.dp))\n                    Text(\"File\")\n                }\n            }\n\n            if (selectedUri != null) {\n                Spacer(Modifier.height(12.dp))\n                Card(\n                    modifier = Modifier.fillMaxWidth(),\n                    shape = RoundedCornerShape(12.dp),\n                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)\n                ) {\n                    Column(modifier = Modifier.padding(12.dp)) {\n                        if (selectedType == AttachmentType.IMAGE) {\n                            AsyncImage(\n                                model = selectedUri,\n                                contentDescription = \"Preview\",\n                                modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(10.dp)),\n                                contentScale = ContentScale.Crop\n                            )\n                            Spacer(Modifier.height(8.dp))\n                        }\n                        Row(verticalAlignment = Alignment.CenterVertically) {\n                            Icon(\n                                imageVector = if (selectedType == AttachmentType.IMAGE) Icons.Default.Image else Icons.Default.AttachFile,\n                                contentDescription = null,\n                                tint = MaterialTheme.colorScheme.primary,\n                                modifier = Modifier.size(20.dp)\n                            )\n                            Spacer(Modifier.width(8.dp))\n                            Text(selectedFileName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))\n                            TextButton(onClick = { selectedUri = null; selectedFileName = \"\"; selectedType = AttachmentType.NONE }) {\n                                Text(\"Remove\", color = Color.Red)\n                            }\n                        }\n                    }\n                }\n            }\n\n            Spacer(Modifier.height(20.dp))\n\n            if (successMessage.isNotEmpty()) {\n                Card(\n                    modifier = Modifier.fillMaxWidth(),\n                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),\n                    shape = RoundedCornerShape(10.dp)\n                ) {\n                    Text(successMessage, color = Color(0xFF2E7D32), modifier = Modifier.padding(14.dp), fontWeight = FontWeight.Medium)\n                }\n                Spacer(Modifier.height(8.dp))\n            }\n\n            if (errorMessage.isNotEmpty()) {\n                Text(errorMessage, color = Color.Red, fontWeight = FontWeight.Medium)\n                Spacer(Modifier.height(8.dp))\n            }\n\n            Button(\n                onClick = {\n                    if (description.isBlank()) { errorMessage = \"Please describe your symptoms first\"; return@Button }\n                    isLoading = true; successMessage = \"\"; errorMessage = \"\"\n                    authViewModel.uploadSymptom(\n                        description = description, fileUri = selectedUri,\n                        fileType = selectedType, fileName = selectedFileName\n                    ) { success, message ->\n                        isLoading = false\n                        if (success) {\n                            successMessage = \"Symptoms submitted! Your doctor will review them.\"\n                            description = \"\"; selectedUri = null; selectedFileName = \"\"; selectedType = AttachmentType.NONE\n                        } else {\n                            errorMessage = message ?: \"Failed to submit symptoms\"\n                        }\n                    }\n                },\n                enabled = !isLoading,\n                modifier = Modifier.fillMaxWidth(),\n                shape = RoundedCornerShape(12.dp)\n            ) {\n                if (isLoading) {\n                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)\n                } else {\n                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))\n                    Spacer(Modifier.width(8.dp))\n                    Text(\"Submit Symptoms\")\n                }\n            }\n        }\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/SubmitSymptomsScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/SubmitSymptomsScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/SubmitSymptomsScreen.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/SubmitSymptomsScreen.kt	(date 1779136071405)
+@@ -20,10 +20,12 @@
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.layout.ContentScale
+ import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import coil.compose.AsyncImage
+ import androidx.activity.compose.BackHandler
++import com.example.medicalrecordapp.R
+ import com.example.medicalrecordapp.domain.model.AttachmentType
+ import com.example.medicalrecordapp.viewmodel.AuthViewModel
+ 
+@@ -69,13 +71,19 @@
+             if (selectedFileName.isBlank()) selectedFileName = "file_${System.currentTimeMillis()}"
+         }
+     }
++    
++    val errDescribeFirst = stringResource(R.string.err_describe_first)
++    val successSubmitted = stringResource(R.string.symptoms_submitted_success)
++    val errSubmitFailed = stringResource(R.string.err_submit_failed)
++
+     BackHandler { onBackClick() }
++    
+     Scaffold(
+         topBar = {
+             CenterAlignedTopAppBar(
+-                title = { Text("Submit Symptoms", fontWeight = FontWeight.Bold) },
++                title = { Text(stringResource(R.string.submit_symptoms), fontWeight = FontWeight.Bold) },
+                 navigationIcon = {
+-                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
++                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                 },
+                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                     containerColor = MaterialTheme.colorScheme.primary,
+@@ -89,20 +97,20 @@
+         Column(
+             modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp).verticalScroll(rememberScrollState())
+         ) {
+-            Text("Describe your symptoms", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
++            Text(stringResource(R.string.describe_symptoms), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+             Spacer(Modifier.height(10.dp))
+ 
+             OutlinedTextField(
+                 value = description,
+                 onValueChange = { description = it },
+-                placeholder = { Text("Describe what you feel, since when, any details...") },
++                placeholder = { Text(stringResource(R.string.describe_symptoms_placeholder)) },
+                 modifier = Modifier.fillMaxWidth().height(160.dp),
+                 shape = RoundedCornerShape(12.dp),
+                 maxLines = 8
+             )
+ 
+             Spacer(Modifier.height(20.dp))
+-            Text("Attach a file (optional)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
++            Text(stringResource(R.string.attach_file), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+             Spacer(Modifier.height(10.dp))
+ 
+             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+@@ -113,7 +121,7 @@
+                 ) {
+                     Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                     Spacer(Modifier.width(6.dp))
+-                    Text("Image")
++                    Text(stringResource(R.string.image))
+                 }
+                 OutlinedButton(
+                     onClick = { fileLauncher.launch("*/*") },
+@@ -122,7 +130,7 @@
+                 ) {
+                     Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
+                     Spacer(Modifier.width(6.dp))
+-                    Text("File")
++                    Text(stringResource(R.string.file))
+                 }
+             }
+ 
+@@ -153,7 +161,7 @@
+                             Spacer(Modifier.width(8.dp))
+                             Text(selectedFileName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                             TextButton(onClick = { selectedUri = null; selectedFileName = ""; selectedType = AttachmentType.NONE }) {
+-                                Text("Remove", color = Color.Red)
++                                Text(stringResource(R.string.remove), color = Color.Red)
+                             }
+                         }
+                     }
+@@ -180,7 +188,7 @@
+ 
+             Button(
+                 onClick = {
+-                    if (description.isBlank()) { errorMessage = "Please describe your symptoms first"; return@Button }
++                    if (description.isBlank()) { errorMessage = errDescribeFirst; return@Button }
+                     isLoading = true; successMessage = ""; errorMessage = ""
+                     authViewModel.uploadSymptom(
+                         description = description, fileUri = selectedUri,
+@@ -188,10 +196,10 @@
+                     ) { success, message ->
+                         isLoading = false
+                         if (success) {
+-                            successMessage = "Symptoms submitted! Your doctor will review them."
++                            successMessage = successSubmitted
+                             description = ""; selectedUri = null; selectedFileName = ""; selectedType = AttachmentType.NONE
+                         } else {
+-                            errorMessage = message ?: "Failed to submit symptoms"
++                            errorMessage = message ?: errSubmitFailed
+                         }
+                     }
+                 },
+@@ -204,7 +212,7 @@
+                 } else {
+                     Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                     Spacer(Modifier.width(8.dp))
+-                    Text("Submit Symptoms")
++                    Text(stringResource(R.string.submit_symptoms))
+                 }
+             }
+         }
+Index: app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorSymptomsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.medicalrecordapp.ui.screens\n\nimport androidx.compose.foundation.clickable\n\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.lazy.LazyColumn\nimport androidx.compose.foundation.lazy.items\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.ArrowBack\nimport androidx.compose.material.icons.filled.AttachFile\nimport androidx.compose.material.icons.filled.Image\nimport androidx.compose.material.icons.filled.Person\nimport androidx.activity.compose.BackHandler\nimport androidx.compose.material3.*\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.draw.clip\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.layout.ContentScale\nimport androidx.compose.ui.platform.LocalUriHandler\nimport androidx.compose.ui.text.font.FontWeight\nimport androidx.compose.ui.unit.dp\nimport coil.compose.AsyncImage\nimport com.example.medicalrecordapp.domain.model.AttachmentType\nimport com.example.medicalrecordapp.domain.model.Symptom\nimport com.example.medicalrecordapp.viewmodel.AuthViewModel\nimport java.text.SimpleDateFormat\nimport java.util.Date\nimport java.util.Locale\n\n@OptIn(ExperimentalMaterial3Api::class)\n@Composable\nfun DoctorSymptomsScreen(\n    authViewModel: AuthViewModel,\n    onBackClick: () -> Unit\n) {\n    val symptomsList by authViewModel.symptomsList.collectAsState()\n    LaunchedEffect(Unit) { authViewModel.fetchAllSymptoms() }\n    BackHandler { onBackClick() }\n    Scaffold(\n        topBar = {\n            CenterAlignedTopAppBar(\n                title = { Text(\"Patient Symptoms\", fontWeight = FontWeight.Bold) },\n                navigationIcon = {\n                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = \"Back\") }\n                },\n                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(\n                    containerColor = MaterialTheme.colorScheme.primary,\n                    titleContentColor = MaterialTheme.colorScheme.onPrimary,\n                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary\n                )\n            )\n        }\n    ) { padding ->\n\n        if (symptomsList.isEmpty()) {\n            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {\n                Column(horizontalAlignment = Alignment.CenterHorizontally) {\n                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(64.dp))\n                    Spacer(Modifier.height(12.dp))\n                    Text(\"No symptoms submitted yet\", color = Color.Gray)\n                }\n            }\n        } else {\n            LazyColumn(\n                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),\n                verticalArrangement = Arrangement.spacedBy(12.dp),\n                contentPadding = PaddingValues(vertical = 16.dp)\n            ) {\n                items(symptomsList) { symptom -> SymptomCard(symptom = symptom) }\n            }\n        }\n    }\n}\n\n@Composable\nprivate fun SymptomCard(symptom: Symptom) {\n    val uriHandler = LocalUriHandler.current\n    val dateFormat = remember { SimpleDateFormat(\"dd/MM/yyyy - HH:mm\", Locale.getDefault()) }\n\n    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {\n        Column(modifier = Modifier.padding(16.dp)) {\n\n            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {\n                Row(verticalAlignment = Alignment.CenterVertically) {\n                    Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(36.dp)) {\n                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {\n                            Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))\n                        }\n                    }\n                    Spacer(Modifier.width(10.dp))\n                    Column {\n                        Text(text = symptom.patientName.ifBlank { \"Unknown\" }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)\n                        if (symptom.patientCin.isNotBlank())\n                            Text(\"CIN: ${symptom.patientCin}\", style = MaterialTheme.typography.labelSmall, color = Color.Gray)\n                    }\n                }\n                Text(dateFormat.format(Date(symptom.createdAt)), style = MaterialTheme.typography.labelSmall, color = Color.Gray)\n            }\n\n            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))\n\n            Text(\"Symptoms:\", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)\n            Spacer(Modifier.height(4.dp))\n            Text(symptom.description, style = MaterialTheme.typography.bodyMedium)\n\n            if (symptom.attachmentUrl.isNotBlank()) {\n                Spacer(Modifier.height(12.dp))\n                HorizontalDivider()\n                Spacer(Modifier.height(8.dp))\n\n                when (symptom.attachmentType) {\n                    AttachmentType.IMAGE -> {\n                        Text(\"Attached Image:\", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)\n                        Spacer(Modifier.height(6.dp))\n                        AsyncImage(\n                            model = symptom.attachmentUrl,\n                            contentDescription = \"Symptom image\",\n                            modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))\n                                .clickable { uriHandler.openUri(symptom.attachmentUrl) },\n                            contentScale = ContentScale.Crop\n                        )\n                        Text(\"Tap to open full image\", style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))\n                    }\n                    AttachmentType.FILE -> {\n                        Row(\n                            modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri(symptom.attachmentUrl) }.padding(vertical = 6.dp),\n                            verticalAlignment = Alignment.CenterVertically\n                        ) {\n                            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(40.dp)) {\n                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {\n                                    Icon(Icons.Default.AttachFile, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(22.dp))\n                                }\n                            }\n                            Spacer(Modifier.width(10.dp))\n                            Column {\n                                Text(symptom.attachmentName.ifBlank { \"Attached File\" }, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)\n                                Text(\"Tap to open\", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)\n                            }\n                        }\n                    }\n                    AttachmentType.NONE -> {}\n                }\n            }\n        }\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorSymptomsScreen.kt b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorSymptomsScreen.kt
+--- a/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorSymptomsScreen.kt	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/java/com/example/medicalrecordapp/ui/screens/DoctorSymptomsScreen.kt	(date 1779136042614)
+@@ -1,7 +1,6 @@
+ package com.example.medicalrecordapp.ui.screens
+ 
+ import androidx.compose.foundation.clickable
+-
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.items
+@@ -9,7 +8,6 @@
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.filled.ArrowBack
+ import androidx.compose.material.icons.filled.AttachFile
+-import androidx.compose.material.icons.filled.Image
+ import androidx.compose.material.icons.filled.Person
+ import androidx.activity.compose.BackHandler
+ import androidx.compose.material3.*
+@@ -20,9 +18,11 @@
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.layout.ContentScale
+ import androidx.compose.ui.platform.LocalUriHandler
++import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import coil.compose.AsyncImage
++import com.example.medicalrecordapp.R
+ import com.example.medicalrecordapp.domain.model.AttachmentType
+ import com.example.medicalrecordapp.domain.model.Symptom
+ import com.example.medicalrecordapp.viewmodel.AuthViewModel
+@@ -42,9 +42,9 @@
+     Scaffold(
+         topBar = {
+             CenterAlignedTopAppBar(
+-                title = { Text("Patient Symptoms", fontWeight = FontWeight.Bold) },
++                title = { Text(stringResource(R.string.patient_symptoms), fontWeight = FontWeight.Bold) },
+                 navigationIcon = {
+-                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
++                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                 },
+                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                     containerColor = MaterialTheme.colorScheme.primary,
+@@ -60,7 +60,7 @@
+                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                     Icon(Icons.Default.Person, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(64.dp))
+                     Spacer(Modifier.height(12.dp))
+-                    Text("No symptoms submitted yet", color = Color.Gray)
++                    Text(stringResource(R.string.no_symptoms_submitted), color = Color.Gray)
+                 }
+             }
+         } else {
+@@ -92,9 +92,9 @@
+                     }
+                     Spacer(Modifier.width(10.dp))
+                     Column {
+-                        Text(text = symptom.patientName.ifBlank { "Unknown" }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
++                        Text(text = symptom.patientName.ifBlank { stringResource(R.string.unknown) }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                         if (symptom.patientCin.isNotBlank())
+-                            Text("CIN: ${symptom.patientCin}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
++                            Text(stringResource(R.string.cin_id_label) + ": ${symptom.patientCin}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                     }
+                 }
+                 Text(dateFormat.format(Date(symptom.createdAt)), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+@@ -102,7 +102,7 @@
+ 
+             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+ 
+-            Text("Symptoms:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
++            Text(stringResource(R.string.symptoms_label), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+             Spacer(Modifier.height(4.dp))
+             Text(symptom.description, style = MaterialTheme.typography.bodyMedium)
+ 
+@@ -113,7 +113,7 @@
+ 
+                 when (symptom.attachmentType) {
+                     AttachmentType.IMAGE -> {
+-                        Text("Attached Image:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
++                        Text(stringResource(R.string.attached_image), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                         Spacer(Modifier.height(6.dp))
+                         AsyncImage(
+                             model = symptom.attachmentUrl,
+@@ -122,7 +122,7 @@
+                                 .clickable { uriHandler.openUri(symptom.attachmentUrl) },
+                             contentScale = ContentScale.Crop
+                         )
+-                        Text("Tap to open full image", style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
++                        Text(stringResource(R.string.tap_to_open_image), style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
+                     }
+                     AttachmentType.FILE -> {
+                         Row(
+@@ -136,8 +136,8 @@
+                             }
+                             Spacer(Modifier.width(10.dp))
+                             Column {
+-                                Text(symptom.attachmentName.ifBlank { "Attached File" }, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
+-                                Text("Tap to open", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
++                                Text(symptom.attachmentName.ifBlank { stringResource(R.string.attached_file) }, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
++                                Text(stringResource(R.string.tap_to_open), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                             }
+                         }
+                     }
+Index: app/src/main/res/values-ar/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\n    <string name=\"app_name\">السجل الطبي الذكي</string>\n    <string name=\"my_health\">صحتي</string>\n    <string name=\"request_appointment\">طلب موعد</string>\n    <string name=\"book_appointment_desc\">حجز موعد جديد مع طبيبك</string>\n    <string name=\"my_appointments\">مواعيدي</string>\n    <string name=\"view_appointments_desc\">عرض جميع مواعيدك المجدولة</string>\n    <string name=\"my_medical_record\">سجلي الطبي</string>\n    <string name=\"access_history_desc\">الوصول إلى تاريخك الطبي الكامل</string>\n    <string name=\"logout\">تسجيل الخروج</string>\n\n    <string name=\"doctor_name\">اسم الطبيب</string>\n    <string name=\"preferred_date\">التاريخ المفضل (YYYY-MM-DD)</string>\n    <string name=\"preferred_time\">الوقت المفضل</string>\n    <string name=\"symptoms_notes\">الأعراض / ملاحظات</string>\n    <string name=\"how_do_you_feel\">بماذا تشعر؟</string>\n    <string name=\"attach_file\">إرفاق ملف (اختياري)</string>\n    <string name=\"image\">صورة</string>\n    <string name=\"file\">ملف</string>\n    <string name=\"remove\">إزالة</string>\n    <string name=\"submit_request\">إرسال الطلب</string>\n\n    <string name=\"please_enter_doctor_name\">يرجى إدخال اسم الطبيب</string>\n    <string name=\"please_enter_date\">يرجى إدخال التاريخ المفضل</string>\n    <string name=\"please_enter_time\">يرجى إدخال الوقت المفضل</string>\n    <string name=\"please_enter_symptoms\">يرجى إدخال الأعراض أو الملاحظات</string>\n    <string name=\"user_not_logged_in\">المستخدم غير مسجل الدخول</string>\n    <string name=\"cannot_read_file\">لا يمكن قراءة الملف</string>\n    <string name=\"upload_failed\">فشل الرفع</string>\n    <string name=\"language_en\">English</string>\n    <string name=\"language_ar\">العربية</string>\n    <string name=\"back\">رجوع</string>\n\n    <string name=\"welcome_back\">مرحباً بعودتك</string>\n    <string name=\"login_subtitle\">قم بتسجيل الدخول إلى حسابك</string>\n    <string name=\"email\">البريد الإلكتروني</string>\n    <string name=\"password\">كلمة المرور</string>\n    <string name=\"login\">تسجيل الدخول</string>\n    <string name=\"no_account_register\">ليس لديك حساب؟ سجل الآن</string>\n    <string name=\"enter_email_password\">يرجى إدخال البريد الإلكتروني وكلمة المرور</string>\n    <string name=\"login_failed\">فشل تسجيل الدخول</string>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values-ar/strings.xml b/app/src/main/res/values-ar/strings.xml
+--- a/app/src/main/res/values-ar/strings.xml	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/res/values-ar/strings.xml	(date 1779137231218)
+@@ -7,6 +7,8 @@
+     <string name="view_appointments_desc">عرض جميع مواعيدك المجدولة</string>
+     <string name="my_medical_record">سجلي الطبي</string>
+     <string name="access_history_desc">الوصول إلى تاريخك الطبي الكامل</string>
++    <string name="submit_symptoms">تقديم الأعراض</string>
++    <string name="submit_symptoms_desc">أرسل أعراضك الحالية إلى طبيبك</string>
+     <string name="logout">تسجيل الخروج</string>
+ 
+     <string name="doctor_name">اسم الطبيب</string>
+@@ -39,4 +41,175 @@
+     <string name="no_account_register">ليس لديك حساب؟ سجل الآن</string>
+     <string name="enter_email_password">يرجى إدخال البريد الإلكتروني وكلمة المرور</string>
+     <string name="login_failed">فشل تسجيل الدخول</string>
++
++    <string name="create_account">إنشاء حساب</string>
++    <string name="register_as_patient">التسجيل كمريض</string>
++    <string name="first_name">الاسم الأول</string>
++    <string name="family_name">اسم العائلة</string>
++    <string name="cin_id">رقم بطاقة التعريف الوطنية</string>
++    <string name="phone">الهاتف</string>
++    <string name="dob">تاريخ الميلاد</string>
++    <string name="dob_hint">DD/MM/YYYY</string>
++    <string name="gender">الجنس</string>
++    <string name="gender_hint">ذكر / أنثى</string>
++    <string name="address">العنوان</string>
++    <string name="blood_group">فصيلة الدم</string>
++    <string name="blood_group_hint">A+, A-, B+, B-, AB+, AB-, O+, O-</string>
++    <string name="chronic_diseases">الأمراض المزمنة</string>
++    <string name="chronic_diseases_hint">لا يوجد / سكري / ربو...</string>
++    <string name="err_first_name">يرجى إدخال اسمك الأول</string>
++    <string name="err_family_name">يرجى إدخال اسم العائلة</string>
++    <string name="err_email">يرجى إدخال بريدك الإلكتروني</string>
++    <string name="err_password_length">يجب أن تكون كلمة المرور 6 أحرف على الأقل</string>
++    <string name="err_cin">يرجى إدخال رقم بطاقة التعريف</string>
++    <string name="err_phone">يرجى إدخال رقم هاتفك</string>
++    <string name="err_dob">يرجى إدخال تاريخ ميلادك</string>
++    <string name="err_gender">يرجى اختيار الجنس</string>
++    <string name="err_address">يرجى إدخال عنوانك</string>
++    <string name="err_blood_group">يرجى إدخال فصيلة دمك</string>
++    <string name="err_chronic">يرجى إدخال الأمراض المزمنة أو اكتب "لا يوجد"</string>
++    <string name="register">تسجيل</string>
++    <string name="already_have_account">لديك حساب بالفعل؟ سجل الدخول</string>
++    <string name="registration_failed">فشل التسجيل</string>
++
++    <string name="doctor_dashboard">لوحة تحكم الطبيب</string>
++    <string name="my_patients">مرضاي</string>
++    <string name="my_patients_desc">عرض وإدارة قائمة المرضى الخاصة بك</string>
++    <string name="appointments">المواعيد</string>
++    <string name="appointments_desc">التحقق من مواعيد اليوم والمواعيد القادمة</string>
++
++    <string name="reception">الاستقبال</string>
++    <string name="register_patient">تسجيل مريض</string>
++    <string name="add_patient_desc">إضافة مريض جديد إلى النظام</string>
++    <string name="patients_list">قائمة المرضى</string>
++    <string name="browse_patients_desc">تصفح والبحث عن جميع المرضى</string>
++    <string name="view_scheduled_desc">عرض المواعيد المجدولة</string>
++    <string name="appointment_requests">طلبات المواعيد</string>
++    <string name="manage_requests_desc">إدارة الطلبات المعلقة</string>
++
++    <string name="admin_dashboard">لوحة تحكم المسؤول</string>
++    <string name="staff_list">قائمة الموظفين</string>
++    <string name="staff_list_desc">عرض جميع الأطباء وموظفي الاستقبال</string>
++    <string name="create_account_desc">إضافة طبيب أو موظف استقبال جديد</string>
++    <string name="statistics">الإحصائيات</string>
++    <string name="statistics_desc">عرض نشاط النظام والتقارير</string>
++
++    <string name="create_staff_account">إنشاء حساب موظف</string>
++    <string name="account_role">دور الحساب</string>
++    <string name="doctor">طبيب</string>
++    <string name="receptionist">موظف استقبال</string>
++    <string name="personal_info">المعلومات الشخصية</string>
++    <string name="last_name">الاسم الأخير</string>
++    <string name="age">العمر</string>
++    <string name="male">ذكر</string>
++    <string name="female">أنثى</string>
++    <string name="cin_supporting_text">معرف فريد لكل مستخدم</string>
++    <string name="professional_info">المعلومات المهنية</string>
++    <string name="speciality">التخصص</string>
++    <string name="office_info">معلومات المكتب</string>
++    <string name="office_number">رقم المكتب</string>
++    <string name="account_credentials">بيانات الاعتماد للحساب</string>
++    <string name="generate">توليد</string>
++    <string name="err_name_required">يرجى إدخال الاسم الأول والأخير</string>
++    <string name="err_cin_required">رقم بطاقة التعريف مطلوب</string>
++    <string name="err_phone_required">رقم الهاتف مطلوب</string>
++    <string name="err_age_invalid">يرجى إدخال عمر صحيح</string>
++    <string name="err_email_required">البريد الإلكتروني مطلوب</string>
++    <string name="err_password_required">كلمة المرور مطلوبة</string>
++    <string name="err_speciality_required">يرجى إدخال التخصص</string>
++    <string name="err_office_required">يرجى إدخال رقم المكتب</string>
++    <string name="account_created">تم إنشاء الحساب!</string>
++    <string name="share_credentials">شارك هذه البيانات مع الموظف الجديد:</string>
++    <string name="name">الاسم</string>
++    <string name="role">الدور</string>
++    <string name="done">تم</string>
++    <string name="creating">جاري الإنشاء...</string>
++
++    <string name="search_staff_placeholder">بحث بالاسم، رقم التعريف، أو التخصص</string>
++    <string name="all">الكل</string>
++    <string name="doctors">الأطباء</string>
++    <string name="receptionists">موظفي الاستقبال</string>
++    <string name="members">أعضاء</string>
++    <string name="no_staff_found">لم يتم العثور على موظفين</string>
++    <string name="cin_id_label">رقم التعريف</string>
++    <string name="age_label">العمر</string>
++    <string name="years">سنوات</string>
++    <string name="gender_label">الجنس</string>
++    <string name="phone_label">الهاتف</string>
++    <string name="email_label">البريد الإلكتروني</string>
++    <string name="speciality_label">التخصص</string>
++    <string name="office_label">المكتب</string>
++    <string name="delete">حذف</string>
++    <string name="save_patient_btn">حفظ المريض</string>
++    <string name="search_patient">بحث عن مريض</string>
++
++    <string name="patient_details">تفاصيل المريض</string>
++    <string name="patient_info">معلومات المريض</string>
++    <string name="symptoms_history">سجل أعراض المريض</string>
++    <string name="no_symptoms_history">لم يتم العثور على سجل أعراض</string>
++    <string name="medical_record_title">السجل الطبي للطبيب</string>
++    <string name="diagnosis">التشخيص</string>
++    <string name="medical_notes">ملاحظات طبية</string>
++    <string name="prescription">الوصفة الطبية / العلاج</string>
++    <string name="please_enter_diagnosis">يرجى إدخال التشخيص</string>
++    <string name="please_enter_medical_notes">يرجى إدخال الملاحظات الطبية</string>
++    <string name="please_enter_prescription">يرجى إدخال الوصفة الطبية</string>
++    <string name="err_cin_not_found">رقم تعريف المريض غير موجود</string>
++    <string name="record_saved_success">تم حفظ السجل الطبي بنجاح</string>
++    <string name="save_medical_record">حفظ السجل الطبي</string>
++    <string name="attached_file">ملف مرفق</string>
++
++    <string name="health_summary">ملخص الصحة</string>
++    <string name="medical_records">السجلات الطبية</string>
++    <string name="no_records_found">لم يتم العثور على سجلات طبية</string>
++    <string name="no_diagnosis">لا يوجد تشخيص</string>
++    <string name="no_notes">لا توجد ملاحظات</string>
++    <string name="no_symptoms">لا توجد أعراض</string>
++    <string name="no_prescription">لا توجد وصفة طبية</string>
++    <string name="symptoms">الأعراض</string>
++    <string name="not_specified">غير محدد</string>
++    <string name="none">لا يوجد</string>
++    <string name="patient">المريض</string>
++
++    <string name="no_appointments_found">لم يتم العثور على مواعيد</string>
++    <string name="date_label">التاريخ</string>
++    <string name="time_label">الوقت</string>
++    <string name="status_label">الحالة</string>
++    <string name="accept">قبول</string>
++    <string name="reject">رفض</string>
++    <string name="suggest_another_time">اقتراح وقت آخر</string>
++    <string name="suggested_date">التاريخ المقترح</string>
++    <string name="suggested_time">الوقت المقترح</string>
++    <string name="err_suggest_fields_required">يرجى إدخال التاريخ والوقت المقترحين</string>
++    <string name="send_suggestion">إرسال الاقتراح</string>
++
++    <string name="payment_label">الدفع</string>
++    <string name="confirm_and_pay">تأكيد ودفع</string>
++    <string name="failed_load_appointments">فشل في تحميل المواعيد</string>
++
++    <string name="patient_symptoms">أعراض المريض</string>
++    <string name="no_symptoms_submitted">لم يتم تقديم أعراض بعد</string>
++    <string name="unknown">غير معروف</string>
++    <string name="symptoms_label">الأعراض:</string>
++    <string name="attached_image">صورة مرفقة:</string>
++    <string name="tap_to_open_image">انقر لفتح الصورة الكاملة</string>
++    <string name="tap_to_open">انقر للفتح</string>
++
++    <string name="describe_symptoms">صف أعراضك</string>
++    <string name="describe_symptoms_placeholder">صف ما تشعر به، منذ متى، أي تفاصيل...</string>
++    <string name="symptoms_submitted_success">تم تقديم الأعراض! سيراجعها طبيبك.</string>
++    <string name="err_describe_first">يرجى وصف أعراضك أولاً</string>
++    <string name="err_submit_failed">فشل في تقديم الأعراض</string>
++    <string name="view_symptoms_desc">مراجعة الأعراض المقدمة من المرضى</string>
++
++    <string name="status_pending">معلق</string>
++    <string name="status_accepted">مقبول</string>
++    <string name="status_rejected">مرفوض</string>
++    <string name="status_suggested">مقترح</string>
++    <string name="status_waiting">في الانتظار</string>
++    <string name="status_confirmed">مؤكد</string>
++    <string name="status_cancelled">ملغي</string>
++
++    <string name="payment_paid">مدفوع</string>
++    <string name="payment_unpaid">غير مدفوع</string>
+ </resources>
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\n    <string name=\"app_name\">MedicalRecordApp</string>\n    <string name=\"my_health\">My Health</string>\n    <string name=\"request_appointment\">Request Appointment</string>\n    <string name=\"book_appointment_desc\">Book a new appointment with your doctor</string>\n    <string name=\"my_appointments\">My Appointments</string>\n    <string name=\"view_appointments_desc\">View all your scheduled appointments</string>\n    <string name=\"my_medical_record\">My Medical Record</string>\n    <string name=\"access_history_desc\">Access your full medical history</string>\n    <string name=\"logout\">Logout</string>\n\n    <string name=\"doctor_name\">Doctor Name</string>\n    <string name=\"preferred_date\">Preferred Date (YYYY-MM-DD)</string>\n    <string name=\"preferred_time\">Preferred Time</string>\n    <string name=\"symptoms_notes\">Symptoms / Notes</string>\n    <string name=\"how_do_you_feel\">How do you feel?</string>\n    <string name=\"attach_file\">Attach a file (optional)</string>\n    <string name=\"image\">Image</string>\n    <string name=\"file\">File</string>\n    <string name=\"remove\">Remove</string>\n    <string name=\"submit_request\">Submit Request</string>\n\n    <string name=\"please_enter_doctor_name\">Please enter doctor name</string>\n    <string name=\"please_enter_date\">Please enter preferred date</string>\n    <string name=\"please_enter_time\">Please enter preferred time</string>\n    <string name=\"please_enter_symptoms\">Please enter symptoms or notes</string>\n    <string name=\"user_not_logged_in\">User not logged in</string>\n    <string name=\"cannot_read_file\">Cannot read file</string>\n    <string name=\"upload_failed\">Upload failed</string>\n    <string name=\"language_en\">English</string>\n    <string name=\"language_ar\">العربية</string>\n    <string name=\"back\">Back</string>\n\n    <string name=\"welcome_back\">Welcome Back</string>\n    <string name=\"login_subtitle\">Login to your account</string>\n    <string name=\"email\">Email</string>\n    <string name=\"password\">Password</string>\n    <string name=\"login\">Login</string>\n    <string name=\"no_account_register\">Don\\'t have an account? Register</string>\n    <string name=\"enter_email_password\">Please enter email and password</string>\n    <string name=\"login_failed\">Login failed</string>\n\n    <string name=\"create_account\">Create Account</string>\n    <string name=\"register_as_patient\">Register as a patient</string>\n    <string name=\"first_name\">First Name</string>\n    <string name=\"family_name\">Family Name</string>\n    <string name=\"cin_id\">CIN / ID Card Number</string>\n    <string name=\"phone\">Phone</string>\n    <string name=\"dob\">Date of Birth</string>\n    <string name=\"dob_hint\">DD/MM/YYYY</string>\n    <string name=\"gender\">Gender</string>\n    <string name=\"gender_hint\">Male / Female</string>\n    <string name=\"address\">Address</string>\n    <string name=\"blood_group\">Blood Group</string>\n    <string name=\"blood_group_hint\">A+, A-, B+, B-, AB+, AB-, O+, O-</string>\n    <string name=\"chronic_diseases\">Chronic Diseases</string>\n    <string name=\"chronic_diseases_hint\">None / Diabetes / Asthma...</string>\n    <string name=\"err_first_name\">Please enter your first name</string>\n    <string name=\"err_family_name\">Please enter your family name</string>\n    <string name=\"err_email\">Please enter your email</string>\n    <string name=\"err_password_length\">Password must be at least 6 characters</string>\n    <string name=\"err_cin\">Please enter your CIN</string>\n    <string name=\"err_phone\">Please enter your phone number</string>\n    <string name=\"err_dob\">Please enter your date of birth</string>\n    <string name=\"err_gender\">Please enter your gender</string>\n    <string name=\"err_address\">Please enter your address</string>\n    <string name=\"err_blood_group\">Please enter your blood group</string>\n    <string name=\"err_chronic\">Please enter chronic diseases or write None</string>\n    <string name=\"register\">Register</string>\n    <string name=\"already_have_account\">Already have an account? Login</string>\n    <string name=\"registration_failed\">Registration failed</string>\n\n    <string name=\"doctor_dashboard\">Doctor Dashboard</string>\n    <string name=\"my_patients\">My Patients</string>\n    <string name=\"my_patients_desc\">View and manage your patient list</string>\n    <string name=\"appointments\">Appointments</string>\n    <string name=\"appointments_desc\">Check today\\'s and upcoming appointments</string>\n\n    <string name=\"reception\">Reception</string>\n    <string name=\"register_patient\">Register Patient</string>\n    <string name=\"add_patient_desc\">Add a new patient to the system</string>\n    <string name=\"patients_list\">Patients List</string>\n    <string name=\"browse_patients_desc\">Browse and search all patients</string>\n    <string name=\"view_scheduled_desc\">View scheduled appointments</string>\n    <string name=\"appointment_requests\">Appointment Requests</string>\n    <string name=\"manage_requests_desc\">Manage pending requests</string>\n\n    <string name=\"admin_dashboard\">Admin Dashboard</string>\n    <string name=\"staff_list\">Staff List</string>\n    <string name=\"staff_list_desc\">View all doctors and receptionists</string>\n    <string name=\"create_account_desc\">Add a new doctor or receptionist</string>\n    <string name=\"statistics\">Statistics</string>\n    <string name=\"statistics_desc\">View system activity and reports</string>\n\n    <string name=\"create_staff_account\">Create Staff Account</string>\n    <string name=\"account_role\">Account Role</string>\n    <string name=\"doctor\">Doctor</string>\n    <string name=\"receptionist\">Receptionist</string>\n    <string name=\"personal_info\">Personal Information</string>\n    <string name=\"last_name\">Last Name</string>\n    <string name=\"age\">Age</string>\n    <string name=\"male\">Male</string>\n    <string name=\"female\">Female</string>\n    <string name=\"cin_supporting_text\">Unique identifier for each user</string>\n    <string name=\"professional_info\">Professional Information</string>\n    <string name=\"speciality\">Speciality</string>\n    <string name=\"office_info\">Office Information</string>\n    <string name=\"office_number\">Office Number</string>\n    <string name=\"account_credentials\">Account Credentials</string>\n    <string name=\"generate\">Generate</string>\n    <string name=\"err_name_required\">Please enter first and last name</string>\n    <string name=\"err_cin_required\">CIN is required</string>\n    <string name=\"err_phone_required\">Phone number is required</string>\n    <string name=\"err_age_invalid\">Please enter a valid age</string>\n    <string name=\"err_email_required\">Email is required</string>\n    <string name=\"err_password_required\">Password is required</string>\n    <string name=\"err_speciality_required\">Please enter speciality</string>\n    <string name=\"err_office_required\">Please enter office number</string>\n    <string name=\"account_created\">Account Created!</string>\n    <string name=\"share_credentials\">Share these credentials with the new staff member:</string>\n    <string name=\"name\">Name</string>\n    <string name=\"role\">Role</string>\n    <string name=\"done\">Done</string>\n    <string name=\"creating\">Creating...</string>\n\n    <string name=\"search_staff_placeholder\">Search by name, CIN, or speciality</string>\n    <string name=\"all\">All</string>\n    <string name=\"doctors\">Doctors</string>\n    <string name=\"receptionists\">Receptionists</string>\n    <string name=\"members\">members</string>\n    <string name=\"no_staff_found\">No staff members found</string>\n    <string name=\"cin_id_label\">CIN</string>\n    <string name=\"age_label\">Age</string>\n    <string name=\"years\">years</string>\n    <string name=\"gender_label\">Gender</string>\n    <string name=\"phone_label\">Phone</string>\n    <string name=\"email_label\">Email</string>\n    <string name=\"speciality_label\">Speciality</string>\n    <string name=\"office_label\">Office</string>\n    <string name=\"delete\">Delete</string>\n    <string name=\"save_patient_btn\">Save Patient</string>\n    <string name=\"search_patient\">Search patient</string>\n\n    <string name=\"patient_details\">Patient Details</string>\n    <string name=\"patient_info\">Patient Information</string>\n    <string name=\"symptoms_history\">Patient Symptoms History</string>\n    <string name=\"no_symptoms_history\">No symptoms history found</string>\n    <string name=\"medical_record_title\">Doctor Medical Record</string>\n    <string name=\"diagnosis\">Diagnosis</string>\n    <string name=\"medical_notes\">Medical Notes</string>\n    <string name=\"prescription\">Prescription / Treatment</string>\n    <string name=\"please_enter_diagnosis\">Please enter diagnosis</string>\n    <string name=\"please_enter_medical_notes\">Please enter medical notes</string>\n    <string name=\"please_enter_prescription\">Please enter prescription</string>\n    <string name=\"err_cin_not_found\">Patient CIN not found</string>\n    <string name=\"record_saved_success\">Medical record saved successfully</string>\n    <string name=\"save_medical_record\">Save Medical Record</string>\n    <string name=\"attached_file\">Attached File</string>\n\n    <string name=\"health_summary\">Health Summary</string>\n    <string name=\"medical_records\">Medical Records</string>\n    <string name=\"no_records_found\">No medical records found</string>\n    <string name=\"no_diagnosis\">No diagnosis</string>\n    <string name=\"no_notes\">No notes</string>\n    <string name=\"no_symptoms\">No symptoms</string>\n    <string name=\"no_prescription\">No prescription</string>\n    <string name=\"symptoms\">Symptoms</string>\n    <string name=\"not_specified\">Not specified</string>\n    <string name=\"none\">None</string>\n    <string name=\"patient\">Patient</string>\n\n    <string name=\"no_appointments_found\">No appointments found</string>\n    <string name=\"date_label\">Date</string>\n    <string name=\"time_label\">Time</string>\n    <string name=\"status_label\">Status</string>\n    <string name=\"accept\">Accept</string>\n    <string name=\"reject\">Reject</string>\n    <string name=\"suggest_another_time\">Suggest another time</string>\n    <string name=\"suggested_date\">Suggested Date</string>\n    <string name=\"suggested_time\">Suggested Time</string>\n    <string name=\"err_suggest_fields_required\">Please enter suggested date and time</string>\n    <string name=\"send_suggestion\">Send Suggestion</string>\n\n    <string name=\"payment_label\">Payment</string>\n    <string name=\"confirm_and_pay\">Confirm and Pay</string>\n    <string name=\"failed_load_appointments\">Failed to load appointments</string>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+--- a/app/src/main/res/values/strings.xml	(revision 44dd321d418d41a569aecc60d82b6c2f5b781abd)
++++ b/app/src/main/res/values/strings.xml	(date 1779136967151)
+@@ -7,6 +7,8 @@
+     <string name="view_appointments_desc">View all your scheduled appointments</string>
+     <string name="my_medical_record">My Medical Record</string>
+     <string name="access_history_desc">Access your full medical history</string>
++    <string name="submit_symptoms">Submit Symptoms</string>
++    <string name="submit_symptoms_desc">Send your current symptoms to your doctor</string>
+     <string name="logout">Logout</string>
+ 
+     <string name="doctor_name">Doctor Name</string>
+@@ -184,4 +186,31 @@
+     <string name="payment_label">Payment</string>
+     <string name="confirm_and_pay">Confirm and Pay</string>
+     <string name="failed_load_appointments">Failed to load appointments</string>
++
++    <string name="patient_symptoms">Patient Symptoms</string>
++    <string name="no_symptoms_submitted">No symptoms submitted yet</string>
++    <string name="unknown">Unknown</string>
++    <string name="symptoms_label">Symptoms:</string>
++    <string name="attached_image">Attached Image:</string>
++    <string name="tap_to_open_image">Tap to open full image</string>
++    <string name="tap_to_open">Tap to open</string>
++
++    <string name="describe_symptoms">Describe your symptoms</string>
++    <string name="describe_symptoms_placeholder">Describe what you feel, since when, any details...</string>
++    <string name="symptoms_submitted_success">Symptoms submitted! Your doctor will review them.</string>
++    <string name="err_describe_first">Please describe your symptoms first</string>
++    <string name="err_submit_failed">Failed to submit symptoms</string>
++    <string name="view_symptoms_desc">Review symptoms submitted by patients</string>
++
++    <!-- Translatable dynamic values -->
++    <string name="status_pending">Pending</string>
++    <string name="status_accepted">Accepted</string>
++    <string name="status_rejected">Rejected</string>
++    <string name="status_suggested">Suggested</string>
++    <string name="status_waiting">Waiting</string>
++    <string name="status_confirmed">Confirmed</string>
++    <string name="status_cancelled">Cancelled</string>
++
++    <string name="payment_paid">Paid</string>
++    <string name="payment_unpaid">Unpaid</string>
+ </resources>
+\ No newline at end of file

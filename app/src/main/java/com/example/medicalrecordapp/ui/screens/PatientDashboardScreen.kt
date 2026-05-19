@@ -15,6 +15,7 @@ fun PatientDashboardScreen(
     onRequestAppointmentClick: () -> Unit,
     onMyAppointmentsClick: () -> Unit,
     onMyRecordClick: () -> Unit,
+    onSubmitSymptomsClick: () -> Unit = {},
     onLanguageChange: (String) -> Unit = {},
     onLogoutClick: () -> Unit
 ) {
